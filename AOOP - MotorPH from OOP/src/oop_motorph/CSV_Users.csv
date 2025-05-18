@@ -1,0 +1,37 @@
+Username,Password,Role,FirstName,LastName
+10001,1234,DeptHead,Jose,Crisostomo
+10002,1234,Accounting,Christian,Mata
+10003,1234,HR,Brad,San Jose
+10004,1234,Payroll Manager,Anthony,Salcedo
+10005,1234,HR,Alice,Romualdez
+10006,1234,HR,Rosie,Atienza
+10007,1234,Finance,Martha,Farala
+10008,1234,Finance,Leila,Martinez
+10009,1234,Employee,Allison,San Jose
+10010,1234,Employee,Cydney,Rosario
+10011,1234,Finance TL,Josie,Lopez
+10012,1234,Employee,Selena,De Leon
+10013,1234,DeptHead,Fredrick,Romualdez
+10014,1234,Employee,Mark,Bautista
+10015,1234,Employee,Darlene,Lazaro
+10016,1234,Employee,Kolby,Delos Santos
+10017,1234,Employee,Vella,Santos
+10018,1234,Employee,Tomas,Del Rosario
+10019,1234,Employee,Jacklyn,Tolentino
+10020,1234,Employee,Percival,Gutierrez
+10021,1234,Employee,Garfield,Manalaysay
+10022,1234,Employee,Lizeth,Villegas
+10023,1234,Employee,Carol,Ramos
+10024,1234,Employee,Emelia,Maceda
+10025,1234,Employee,Delia,Aguilar
+10026,1234,Employee,Manuel III,Garcia
+10027,1234,Employee,Antonio,Lim
+10028,1234,Employee,Bianca Sofia,Aquino
+10029,1234,Employee,Isabella,Reyes
+10030,1234,Employee,Eduard,Hernandez
+10031,1234,DeptHead,Andrea Mae,Villanueva
+10032,1234,Finance,Roderick,Alvaro
+10033,1234,Employee,John Rafael,Castro
+10034,1234,Employee,Carlos Ian,Martinez
+10035,1234,Admin,Beatriz,Santos
+10040,1234,Employee,Joyce Test,Ferrer
