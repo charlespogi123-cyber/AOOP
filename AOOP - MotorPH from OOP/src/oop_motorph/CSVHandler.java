@@ -40,19 +40,9 @@ public class CSVHandler {
     private static final DateTimeFormatter TIME_FORMATTER = DateTimeFormatter.ofPattern("H:mm:ss");
 
     // User Credentials
+    // Replace the existing loadCredentials() method in CSVHandler.java with this database version
     public static Map<String, String[]> loadCredentials() {
-        Map<String, String[]> credentialsMap = new HashMap<>();
-        List<String[]> userData = readCSV(CSV_UsersPath);
-
-        for (String[] row : userData) {
-            if (row.length >= 3) { // Ensure the row has the correct number of columns
-                String username = row[0].trim();
-                String[] userDetails = Arrays.copyOfRange(row, 1, row.length);
-                credentialsMap.put(username, userDetails);
-            }
-        }
-
-        return credentialsMap;
+        return DatabaseHandler.loadCredentials();
     }
 
 
@@ -156,61 +146,12 @@ public class CSVHandler {
 
     // Read employee data and return a list of EmpDetails objects
     public static List<EmpDetails> getEmployeeData() {
-        List<String[]> employeeData = readCSV(CSV_EmployeesPath);
-        List<EmpDetails> employees = new ArrayList<>();
-
-        // Debug: Print the raw data read from CSV_Employees.csv
-        System.out.println("Raw data from CSV_Employees.csv:");
-        for (String[] row : employeeData) {
-            System.out.println(Arrays.toString(row));
-        }
-
-        for (String[] row : employeeData) {
-            if (row.length == 9) { // Ensure the row has the correct number of columns
-                EmpDetails emp = new EmpDetails(
-                        row[0].trim(), // EmpID
-                        row[1].trim(), // First Name
-                        row[2].trim(), // Last Name
-                        row[3].trim(), // Birthday
-                        row[4].trim(), // Address
-                        row[5].trim(), // Phone Number
-                        row[6].trim(), // Status
-                        row[7].trim(), // Position
-                        row[8].trim()  // Immediate Supervisor
-                );
-                employees.add(emp);
-
-                // Debug: Print the employee details being added to the list
-                System.out.println("Adding employee: " + emp);
-            } else {
-                System.out.println("Skipping invalid row (not enough columns): " + Arrays.toString(row));
-            }
-        }
-
-        return employees;
+        return DatabaseHandler.getEmployeeData();
     }
 
     // Update employee record
     public static void updateEmployee(EmpDetails updatedEmp) {
-        List<String[]> employeeData = readCSV(CSV_EmployeesPath);
-        for (int i = 0; i < employeeData.size(); i++) {
-            String[] row = employeeData.get(i);
-            if (row[0].equals(updatedEmp.getEmpID())) {
-                row[1] = updatedEmp.getFirstName();
-                row[2] = updatedEmp.getLastName();
-                row[3] = updatedEmp.getBirthdate();
-                row[4] = updatedEmp.getAddress();
-                row[5] = updatedEmp.getPhoneNumber();
-                row[6] = updatedEmp.getEmployeeStatus();
-                row[7] = updatedEmp.getPosition();
-                row[8] = updatedEmp.getImmediateSupervisor();
-                break;
-            }
-        }
-        saveCSV(CSV_EmployeesPath, employeeData);
-
-        // You might need to update corresponding records in Attendance and Salary as well
-        updateAttendanceOrSalary(updatedEmp);
+        DatabaseHandler.updateEmployee(updatedEmp);
     }
 
     private static void updateAttendanceOrSalary(EmpDetails updatedEmp) {      //-----------???????
@@ -243,210 +184,25 @@ public class CSVHandler {
 
 
     public static void addEmployee(EmpDetails newEmp) {
-        List<String[]> employeeData = readCSV(CSV_EmployeesPath);
-        String[] newEmployee = new String[]{
-                newEmp.getEmpID(), newEmp.getFirstName(), newEmp.getLastName(),
-                newEmp.getBirthdate(), newEmp.getAddress(), newEmp.getPhoneNumber(),
-                newEmp.getEmployeeStatus(), newEmp.getPosition(), newEmp.getImmediateSupervisor()
-        };
-        employeeData.add(newEmployee);
-        saveCSV(CSV_EmployeesPath, employeeData);
-
-        // Add to Attendance file
-        List<String[]> attendanceData = readCSV(CSV_AttendancePath);
-        for (String[] row : attendanceData) {
-
-        }
-
-        // Add attendance data for new employee
-        String[] newAttendance = new String[]{
-                newEmp.getEmpID(), newEmp.getFirstName(), newEmp.getLastName(), newEmp.getEmployeeStatus(), newEmp.getPosition(), newEmp.getImmediateSupervisor(),
-                "01-Jan-00", "01-Jan-00", // Default date for attdateFrom and attdateTo
-                "", "", "", "", "", "", "0", "0", "", "", "0", "0", "0", "0", "0", "0"
-        };
-        attendanceData.add(newAttendance);
-        saveCSV(CSV_AttendancePath, attendanceData);
-
-
-        // Add to Salary file
-        List<String[]> salaryData = readCSV(CSV_SalaryPath);
-        for (String[] row : salaryData) {
-
-        }
-
-        // Add salary data for new employee
-        String[] newSalary = new String[]{
-                newEmp.getEmpID(), newEmp.getFirstName(), newEmp.getLastName(),
-                "", "", "", "", "0", "0", "0", "0", "0", "0"
-        };
-        salaryData.add(newSalary);
-        saveCSV(CSV_SalaryPath, salaryData);
-
+        DatabaseHandler.addEmployee(newEmp);
     }
 
 
     public static void deleteEmployee(String empID) {
-        // Delete from Employee file
-        List<String[]> employeeData = readCSV(CSV_EmployeesPath);
-        Iterator<String[]> employeeIterator = employeeData.iterator();
-        while (employeeIterator.hasNext()) {
-            String[] row = employeeIterator.next();
-            if (row[0].equals(empID)) { // empID is assumed to be in the first column
-                employeeIterator.remove();
-                break;
-            }
-        }
-        saveCSV(CSV_EmployeesPath, employeeData);
-
-        // Delete from Attendance file
-        List<String[]> attendanceData = readCSV(CSV_AttendancePath);
-        Iterator<String[]> attendanceIterator = attendanceData.iterator();
-        while (attendanceIterator.hasNext()) {
-            String[] row = attendanceIterator.next();
-            if (row[0].equals(empID)) {
-                attendanceIterator.remove();
-                break;
-            }
-        }
-        saveCSV(CSV_AttendancePath, attendanceData);
-
-        // Delete from Salary file
-        List<String[]> salaryData = readCSV(CSV_SalaryPath);
-        Iterator<String[]> salaryIterator = salaryData.iterator();
-        while (salaryIterator.hasNext()) {
-            String[] row = salaryIterator.next();
-            if (row[0].equals(empID)) {
-                salaryIterator.remove();
-                break;
-            }
-        }
-        saveCSV(CSV_SalaryPath, salaryData);
+        DatabaseHandler.deleteEmployee(empID);
     }
 
 
     // Reads attendance data and returns a list of EmpAttLeave objects
+    // Replace the existing getAttendanceData() method in CSVHandler.java with this database version
     public static List<EmpAttLeave> getAttendanceData() {
-        List<EmpAttLeave> attendanceList = new ArrayList<>();
-        DateTimeFormatter inputFormatter = DateTimeFormatter.ofPattern("dd-MMM-yy");
-        DateTimeFormatter tableDateFormatter = DateTimeFormatter.ofPattern("dd-MMM-yy");
-
-        // Use getResourceAsStream instead of FileReader
-        InputStream in = CSVHandler.class.getResourceAsStream("/" + CSV_AttendancePath);
-        if (in == null) {
-            System.err.println("Could not find resource: " + CSV_AttendancePath);
-            return attendanceList;
-        }
-
-        try (BufferedReader br = new BufferedReader(new InputStreamReader(in))) {
-            String line;
-            br.readLine(); // Skip header
-
-            while ((line = br.readLine()) != null) {
-                String[] values = line.split(",", -1); // Handles empty values
-
-                if (values.length >= 19) {
-                    try {
-                        String empID = values[0].trim();
-                        String firstName = values[1].trim();
-                        String lastName = values[2].trim();
-                        String empStatus = values[3].trim();
-                        String position = values[4].trim();
-                        String immSupervisor = values[5].trim();
-
-                        // Validate and parse dates
-                        LocalDate attdateFrom = parseDate(values[6]);
-                        LocalDate attdateTo = parseDate(values[7]);
-
-                        // Validate and parse times
-                        LocalTime timeIn = parseTime(values[8]);
-                        LocalTime timeOut = parseTime(values[9]);
-
-                        // Handle numeric values safely
-                        double hoursWorked = parseDouble(values[10]);
-                        double duration = parseDouble(values[11]);
-                        String attendanceType = values[12].trim();
-                        String attendanceStat = values[13].trim();
-
-                        double vlCount = parseDouble(values[14]);
-                        double vlUsed = parseDouble(values[15]);
-                        double vlBal = parseDouble(values[16]);
-                        double slCount = parseDouble(values[17]);
-                        double slUsed = parseDouble(values[18]);
-                        double slBal = parseDouble(values[19]);
-
-                        EmpAttLeave record = new EmpAttLeave(empID, firstName, lastName, empStatus, position, immSupervisor,
-                                attdateFrom, attdateTo, timeIn, timeOut,
-                                hoursWorked, duration, attendanceType, attendanceStat,
-                                vlCount, vlUsed, vlBal, slCount, slUsed, slBal);
-
-                        attendanceList.add(record);
-                    } catch (Exception e) {
-                        System.err.println("Skipping row due to parsing error: " + Arrays.toString(values));
-                        e.printStackTrace();
-                    }
-                } else {
-                    System.err.println("Skipping row due to missing columns: " + Arrays.toString(values));
-                }
-            }
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
-
-
-        return attendanceList;
+        return DatabaseHandler.getAttendanceData();
     }
 
     // Reads salary data and returns a list of EmpSalaryDetails objects
+    // Replace the existing getSalaryData() method in CSVHandler.java with this database version
     public static List<EmpSalaryDetails> getSalaryData() {
-        List<EmpSalaryDetails> salaryList = new ArrayList<>();
-
-        // Use getResourceAsStream instead of FileReader
-        InputStream in = CSVHandler.class.getResourceAsStream("/" + CSV_SalaryPath);
-        if (in == null) {
-            System.err.println("Could not find resource: " + CSV_SalaryPath);
-            return salaryList;
-        }
-
-        try (BufferedReader br = new BufferedReader(new InputStreamReader(in))) {
-            String line;
-            br.readLine(); // Skip header
-
-            while ((line = br.readLine()) != null) {
-                String[] values = line.split(",", -1); // Handles empty values
-
-                if (values.length >= 13) {
-                    try {
-                        String empId = values[0].trim();
-                        String firstName = values[1].trim();
-                        String lastName = values[2].trim();
-                        String sssNo = values[3].trim();
-                        String philhealthNo = values[4].trim();
-                        String tinNo = values[5].trim();
-                        String pagibigNo = values[6].trim();
-
-                        // Parse numeric values safely
-                        double basicSalary = parseDouble(values[7]);
-                        double riceAllow = parseDouble(values[8]);
-                        double phoneAllow = parseDouble(values[9]);
-                        double clothingAllow = parseDouble(values[10]);
-                        double grossSemi = parseDouble(values[11]);
-                        double hourlyRate = parseDouble(values[12]);
-
-                        salaryList.add(new EmpSalaryDetails(empId, firstName, lastName, sssNo, philhealthNo, tinNo, pagibigNo,
-                                basicSalary, riceAllow, phoneAllow, clothingAllow, grossSemi, hourlyRate));
-
-                    } catch (NumberFormatException e) {
-                        System.err.println("Skipping row due to invalid number format: " + Arrays.toString(values));
-                    }
-                } else {
-                    System.err.println("Skipping row due to insufficient data: " + Arrays.toString(values));
-                }
-            }
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
-
-        return salaryList;
+        return DatabaseHandler.getSalaryData();
     }
 
     public static void addEmployeeSalary(EmpSalaryDetails newEmpSalary) {
