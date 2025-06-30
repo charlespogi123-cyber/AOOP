@@ -155,31 +155,7 @@ public class CSVHandler {
     }
 
     private static void updateAttendanceOrSalary(EmpDetails updatedEmp) {      //-----------???????
-        // You can update the Attendance CSV file
-        List<String[]> attendanceData = readCSV(CSV_AttendancePath);
-        for (int i = 0; i < attendanceData.size(); i++) {
-            String[] row = attendanceData.get(i);
-            if (row[0].equals(updatedEmp.getEmpID())) {
-                row[1] = updatedEmp.getFirstName();
-                row[2] = updatedEmp.getLastName();
-                // Update any other fields if needed
-                break;
-            }
-        }
-        saveCSV(CSV_AttendancePath, attendanceData);
-
-        // Similarly, update the Salary CSV file if needed
-        List<String[]> salaryData = readCSV(CSV_SalaryPath);
-        for (int i = 0; i < salaryData.size(); i++) {
-            String[] row = salaryData.get(i);
-            if (row[0].equals(updatedEmp.getEmpID())) {
-                row[1] = updatedEmp.getFirstName();
-                row[2] = updatedEmp.getLastName();
-                // Update any other fields if needed
-                break;
-            }
-        }
-        saveCSV(CSV_SalaryPath, salaryData);
+        DatabaseHandler.updateEmployee(updatedEmp);
     }
 
 

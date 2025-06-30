@@ -63,8 +63,8 @@ public class frm_EmpAttLeave extends javax.swing.JFrame {
             btn_LeaveApproval.setEnabled(false);
             btn_LeaveRequest.setEnabled(true);
             break;
-        case "FINANCE":
-            // Finance can access:
+
+        case "FINANCE":  // Finance can access:
             btn_MyRecords.setEnabled(true);
             btn_SalaryAndStatutory.setEnabled(true);
             btn_Profile.setEnabled(true);
