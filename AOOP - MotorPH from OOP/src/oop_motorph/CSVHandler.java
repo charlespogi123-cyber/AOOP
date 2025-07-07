@@ -504,29 +504,10 @@ public class CSVHandler {
 
     // Read the payroll CSV file
     public static List<String[]> readPayrollCSV() {
-        List<String[]> payrollData = new ArrayList<>();
-
-        // Use getResourceAsStream instead of FileReader
-        InputStream in = CSVHandler.class.getResourceAsStream("/" + CSV_PayrollPath);
-        if (in == null) {
-            System.err.println("Could not find resource: " + CSV_PayrollPath);
-            return payrollData;
-        }
-
-        try (BufferedReader br = new BufferedReader(new InputStreamReader(in))) {
-            String line;
-            while ((line = br.readLine()) != null) {
-                if (!line.trim().isEmpty()) {
-                    payrollData.add(line.split(",", -1));
-                }
-            }
-        } catch (IOException e) {
-            System.err.println("Error reading file: " + CSV_PayrollPath);
-            e.printStackTrace();
-        }
-
-        return payrollData;
+        // Delegate to DatabaseHandler instead of reading CSV
+        return DatabaseHandler.readPayrollFromDatabase();
     }
+
 
     // Display Payroll Data (Debugging)
     public static void displayPayrollData() {

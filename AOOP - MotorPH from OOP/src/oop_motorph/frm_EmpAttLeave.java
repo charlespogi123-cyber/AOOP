@@ -28,112 +28,49 @@ public class frm_EmpAttLeave extends javax.swing.JFrame {
         JOptionPane.showMessageDialog(this, "User not logged in!", "Error", JOptionPane.ERROR_MESSAGE);
         }
     }
-    
+
     public void setRoleBasedAccess(String role) {
-    // Default: Disable all buttons
-    btn_MyRecords.setEnabled(true);
-    //btn_LeaveMgt.setEnabled(false);
-    btn_SalaryAndStatutory.setEnabled(false);
-    btn_Profile.setEnabled(true);
-    btn_Logout.setEnabled(false);
-    btn_EmpRecords.setEnabled(false);
-    btn_PayrollSummary.setEnabled(false);
-    btn_LeaveApproval.setEnabled(false);
-    btn_LeaveRequest.setEnabled(false);
+        // Disable all by default
+        btn_MyRecords.setEnabled(false);
+        btn_SalaryAndStatutory.setEnabled(false);
+        btn_Profile.setEnabled(false);
+        btn_Logout.setEnabled(false);
+        btn_EmpRecords.setEnabled(false);
+        btn_PayrollSummary.setEnabled(false);
+        btn_LeaveApproval.setEnabled(false);
+        btn_LeaveRequest.setEnabled(false);
+        btn_LeaveMgt.setEnabled(false); // Include if this button exists
 
-    // Enable buttons based on role (case-insensitive)
-    switch (role.toUpperCase()) {
-        case "EMPLOYEE":
-            // Employees can access:
-            btn_MyRecords.setEnabled(true);
-            btn_SalaryAndStatutory.setEnabled(true);
-            btn_Profile.setEnabled(true);
-            btn_Logout.setEnabled(true);
-            btn_PayrollSummary.setEnabled(true);
-            btn_LeaveRequest.setEnabled(true);
-            break;
-        case "HR":
-            // HR can access:
-            btn_MyRecords.setEnabled(true);
-            btn_SalaryAndStatutory.setEnabled(true);
-            btn_Profile.setEnabled(true);
-            btn_EmpRecords.setEnabled(true);
-            btn_Logout.setEnabled(true);
-            btn_PayrollSummary.setEnabled(true);        
-            btn_LeaveApproval.setEnabled(false);
-            btn_LeaveRequest.setEnabled(true);
-            break;
+        switch (role.toUpperCase()) {
+            case "EMPLOYEE" -> {
+                btn_MyRecords.setEnabled(true);
+                btn_SalaryAndStatutory.setEnabled(true);
+                btn_Profile.setEnabled(true);
+                btn_Logout.setEnabled(true);
+                btn_PayrollSummary.setEnabled(true);
+                btn_LeaveRequest.setEnabled(true);
+            }
 
-        case "FINANCE":  // Finance can access:
-            btn_MyRecords.setEnabled(true);
-            btn_SalaryAndStatutory.setEnabled(true);
-            btn_Profile.setEnabled(true);
-            btn_PayrollSummary.setEnabled(true);
-            btn_Logout.setEnabled(true);
-            btn_LeaveApproval.setEnabled(false);
-            btn_LeaveRequest.setEnabled(true);
-            btn_EmpRecords.setEnabled(true);
-          
-            break;
-        case "DEPTHEAD":
-            // Dept-Head can access:
-            btn_SalaryAndStatutory.setEnabled(true);
-            btn_Logout.setEnabled(true);
-            btn_PayrollSummary.setEnabled(true);
-            btn_LeaveApproval.setEnabled(true);
-            btn_LeaveRequest.setEnabled(true);
-            break;
-        case "FINANCE TL":
-            // Finance TL can access:
-            btn_MyRecords.setEnabled(true);
-            btn_SalaryAndStatutory.setEnabled(true);
-            btn_Profile.setEnabled(true);
-            btn_PayrollSummary.setEnabled(true);
-            btn_Logout.setEnabled(true);
-            btn_LeaveApproval.setEnabled(true);
-            btn_LeaveRequest.setEnabled(true);
-            btn_EmpRecords.setEnabled(true);
-            break;
-        case "PAYROLL MANAGER":
-            // Payroll Manager can access:
-            btn_MyRecords.setEnabled(true);
-            btn_SalaryAndStatutory.setEnabled(true);
-            btn_Profile.setEnabled(true);
-            btn_PayrollSummary.setEnabled(true);
-            btn_Logout.setEnabled(true);
-            btn_LeaveApproval.setEnabled(true);
-            btn_LeaveRequest.setEnabled(true);
-            btn_EmpRecords.setEnabled(true);
-            break;
-        case "ACCOUNTING":
-            // Accounting can access:
-            btn_MyRecords.setEnabled(true);
-            btn_SalaryAndStatutory.setEnabled(true);
-            btn_Profile.setEnabled(true);
-            btn_PayrollSummary.setEnabled(true);
-            btn_Logout.setEnabled(true);
-            btn_LeaveMgt.setEnabled(true);
-            btn_LeaveRequest.setEnabled(true);
-            btn_LeaveApproval.setEnabled(true);
-            btn_EmpRecords.setEnabled(true);
-            break;
-        case "ADMIN":
-            // Admin can access:
-            btn_MyRecords.setEnabled(true);
-            btn_SalaryAndStatutory.setEnabled(true);
-            btn_Profile.setEnabled(true);
-            btn_PayrollSummary.setEnabled(true);
-            btn_Logout.setEnabled(true);
-            btn_EmpRecords.setEnabled(true);
-            btn_LeaveMgt.setEnabled(true);
-            btn_LeaveRequest.setEnabled(true);
-            btn_LeaveApproval.setEnabled(true);
-            break;
-        default:
-            JOptionPane.showMessageDialog(this, "Invalid role: " + role, "Error", JOptionPane.ERROR_MESSAGE);
-            break;
+            case "HR" -> {
+                btn_MyRecords.setEnabled(true);
+                btn_SalaryAndStatutory.setEnabled(true);
+                btn_Profile.setEnabled(true);
+                btn_EmpRecords.setEnabled(true);
+                btn_Logout.setEnabled(true);
+                btn_PayrollSummary.setEnabled(true);
+                btn_LeaveApproval.setEnabled(true);
+                btn_LeaveRequest.setEnabled(true);
+                btn_LeaveMgt.setEnabled(true);
+            }
+
+            default -> {
+                JOptionPane.showMessageDialog(this,
+                        "Access denied: This section is for HR or Employee roles only.",
+                        "Permission Denied", JOptionPane.WARNING_MESSAGE);
+                dispose(); // Close the window if role is unauthorized
+            }
+        }
     }
-}
     
 // To display the data of the logged in User
     private void displayLoggedInEmployeeAttendance() {

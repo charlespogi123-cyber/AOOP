@@ -13,41 +13,55 @@ public class DatabaseHandler {
     private static final DateTimeFormatter DATE_FORMATTER = DateTimeFormatter.ofPattern("yyyy-MM-dd");
     private static final DateTimeFormatter TIME_FORMATTER = DateTimeFormatter.ofPattern("HH:mm:ss");
 
-    private Connection getConnection() {
+    public static Connection getConnection() {
         return DatabaseConfig.getInstance().getConnection();
     }
 
     // User Credentials
     public static Map<String, String[]> loadCredentials() {
-        Map<String, String[]> credentialsMap = new HashMap<>();
-        String query = "SELECT username, password, role, first_name, last_name FROM users";
+        Map<String, String[]> credentials = new HashMap<>();
+        String query = "SELECT username, password, role, first_name, last_name FROM Users";
 
-        try (Connection conn = DatabaseConfig.getInstance().getConnection();
+        try (Connection conn = getConnection();
              PreparedStatement stmt = conn.prepareStatement(query);
              ResultSet rs = stmt.executeQuery()) {
 
             while (rs.next()) {
                 String username = rs.getString("username");
-                String[] userDetails = {
-                        rs.getString("password"),
-                        rs.getString("role"),
-                        rs.getString("first_name"),
-                        rs.getString("last_name")
-                };
-                credentialsMap.put(username, userDetails);
+                String password = rs.getString("password");
+                String role = rs.getString("role");
+                String firstName = rs.getString("first_name");
+                String lastName = rs.getString("last_name");
+                credentials.put(username, new String[]{password, role, firstName, lastName});
             }
         } catch (SQLException e) {
-            System.err.println("Error loading credentials: " + e.getMessage());
             e.printStackTrace();
         }
 
-        return credentialsMap;
+        return credentials;
     }
 
     // Employee Operations
     public static List<EmpDetails> getEmployeeData() {
         List<EmpDetails> employees = new ArrayList<>();
-        String query = "SELECT * FROM employees ORDER BY emp_id";
+        String query = """
+        SELECT 
+            e.EmployeeID AS emp_id,
+            e.FirstName AS first_name,
+            e.LastName AS last_name,
+            e.Birthday AS birthday,
+            CONCAT(a.StreetAddress, ', ', a.City, ', ', a.Region) AS address,
+            e.PhoneNumber AS phone_number,
+            es.StatusName AS status,
+            p.PositionName AS position,
+            CONCAT(sup.FirstName, ' ', sup.LastName) AS immediate_supervisor
+        FROM Employees e
+        JOIN Addresses a ON e.AddressID = a.AddressID
+        JOIN EmployeeStatuses es ON e.StatusID = es.StatusID
+        JOIN Positions p ON e.PositionID = p.PositionID
+        LEFT JOIN Employees sup ON e.ImmediateSupervisorID = sup.EmployeeID
+        ORDER BY e.EmployeeID
+    """;
 
         try (Connection conn = DatabaseConfig.getInstance().getConnection();
              PreparedStatement stmt = conn.prepareStatement(query);
@@ -252,7 +266,26 @@ public class DatabaseHandler {
     // Salary Operations
     public static List<EmpSalaryDetails> getSalaryData() {
         List<EmpSalaryDetails> salaryList = new ArrayList<>();
-        String query = "SELECT * FROM salary ORDER BY emp_id";
+        String query = """
+        SELECT 
+            c.EmployeeID AS emp_id,
+            e.FirstName,
+            e.LastName,
+            g.SSSNumber,
+            g.PhilHealthNumber,
+            g.TINNumber,
+            g.PagIBIGNumber,
+            c.BasicSalary,
+            c.RiceSubsidy,
+            c.PhoneAllowance,
+            c.ClothingAllowance,
+            c.GrossSemimonthly,
+            c.HourlyRate
+        FROM Compensation c
+        JOIN Employees e ON c.EmployeeID = e.EmployeeID
+        JOIN GovernmentIDs g ON c.EmployeeID = g.EmployeeID
+        ORDER BY c.EmployeeID
+    """;
 
         try (Connection conn = DatabaseConfig.getInstance().getConnection();
              PreparedStatement stmt = conn.prepareStatement(query);
@@ -261,21 +294,22 @@ public class DatabaseHandler {
             while (rs.next()) {
                 EmpSalaryDetails salary = new EmpSalaryDetails(
                         rs.getString("emp_id"),
-                        rs.getString("first_name"),
-                        rs.getString("last_name"),
-                        rs.getString("sss_no"),
-                        rs.getString("philhealth_no"),
-                        rs.getString("tin_no"),
-                        rs.getString("pagibig_no"),
-                        rs.getDouble("basic_salary"),
-                        rs.getDouble("rice_allowance"),
-                        rs.getDouble("phone_allowance"),
-                        rs.getDouble("clothing_allowance"),
-                        rs.getDouble("gross_semi"),
-                        rs.getDouble("hourly_rate")
+                        rs.getString("FirstName"),
+                        rs.getString("LastName"),
+                        rs.getString("SSSNumber"),
+                        rs.getString("PhilHealthNumber"),
+                        rs.getString("TINNumber"),
+                        rs.getString("PagIBIGNumber"),
+                        rs.getDouble("BasicSalary"),
+                        rs.getDouble("RiceSubsidy"),
+                        rs.getDouble("PhoneAllowance"),
+                        rs.getDouble("ClothingAllowance"),
+                        rs.getDouble("GrossSemimonthly"),
+                        rs.getDouble("HourlyRate")
                 );
                 salaryList.add(salary);
             }
+
         } catch (SQLException e) {
             System.err.println("Error getting salary data: " + e.getMessage());
             e.printStackTrace();
@@ -316,46 +350,52 @@ public class DatabaseHandler {
     // Attendance Operations
     public static List<EmpAttLeave> getAttendanceData() {
         List<EmpAttLeave> attendanceList = new ArrayList<>();
-        String query = "SELECT * FROM attendance ORDER BY emp_id, date_from";
+        String query = """
+        SELECT 
+            a.EmployeeID AS emp_id,
+            e.FirstName,
+            e.LastName,
+            es.StatusName AS employee_status,
+            p.PositionName,
+            CONCAT(sup.FirstName, ' ', sup.LastName) AS immediate_supervisor,
+            a.AttendanceDate AS date_from,
+            a.AttendanceDate AS date_to,
+            a.LoginTime AS time_in,
+            a.LogoutTime AS time_out,
+            a.TotalHours AS hours_worked
+        FROM Attendance a
+        JOIN Employees e ON a.EmployeeID = e.EmployeeID
+        JOIN EmployeeStatuses es ON e.StatusID = es.StatusID
+        JOIN Positions p ON e.PositionID = p.PositionID
+        LEFT JOIN Employees sup ON e.ImmediateSupervisorID = sup.EmployeeID
+        ORDER BY a.EmployeeID, a.AttendanceDate
+    """;
 
         try (Connection conn = DatabaseConfig.getInstance().getConnection();
              PreparedStatement stmt = conn.prepareStatement(query);
              ResultSet rs = stmt.executeQuery()) {
 
             while (rs.next()) {
-                LocalDate dateFrom = rs.getDate("date_from") != null ?
-                        rs.getDate("date_from").toLocalDate() : LocalDate.of(2000, 1, 1);
-                LocalDate dateTo = rs.getDate("date_to") != null ?
-                        rs.getDate("date_to").toLocalDate() : LocalDate.of(2000, 1, 1);
-                LocalTime timeIn = rs.getTime("time_in") != null ?
-                        rs.getTime("time_in").toLocalTime() : LocalTime.of(8, 0);
-                LocalTime timeOut = rs.getTime("time_out") != null ?
-                        rs.getTime("time_out").toLocalTime() : LocalTime.of(17, 0);
-
                 EmpAttLeave attendance = new EmpAttLeave(
                         rs.getString("emp_id"),
-                        rs.getString("first_name"),
-                        rs.getString("last_name"),
+                        rs.getString("FirstName"),
+                        rs.getString("LastName"),
                         rs.getString("employee_status"),
-                        rs.getString("position"),
+                        rs.getString("PositionName"),
                         rs.getString("immediate_supervisor"),
-                        dateFrom,
-                        dateTo,
-                        timeIn,
-                        timeOut,
+                        rs.getDate("date_from").toLocalDate(),
+                        rs.getDate("date_to").toLocalDate(),
+                        rs.getTime("time_in") != null ? rs.getTime("time_in").toLocalTime() : null,
+                        rs.getTime("time_out") != null ? rs.getTime("time_out").toLocalTime() : null,
                         rs.getDouble("hours_worked"),
-                        rs.getDouble("duration"),
-                        rs.getString("attendance_type"),
-                        rs.getString("attendance_status"),
-                        rs.getDouble("vl_count"),
-                        rs.getDouble("vl_used"),
-                        rs.getDouble("vl_balance"),
-                        rs.getDouble("sl_count"),
-                        rs.getDouble("sl_used"),
-                        rs.getDouble("sl_balance")
+                        0,  // duration placeholder
+                        "Regular",  // placeholder attendance_type
+                        "Present",  // placeholder attendance_status
+                        0, 0, 0, 0, 0, 0  // leave fields (if needed)
                 );
                 attendanceList.add(attendance);
             }
+
         } catch (SQLException e) {
             System.err.println("Error getting attendance data: " + e.getMessage());
             e.printStackTrace();
@@ -399,6 +439,42 @@ public class DatabaseHandler {
             e.printStackTrace();
         }
     }
+
+    public static List<String[]> readPayrollFromDatabase() {
+        List<String[]> payrollData = new ArrayList<>();
+        String query = "SELECT * FROM Payroll ORDER BY EmployeeID, PayrollPeriodStartDate";
+
+        try (Connection conn = DatabaseConfig.getInstance().getConnection();
+             PreparedStatement stmt = conn.prepareStatement(query);
+             ResultSet rs = stmt.executeQuery()) {
+
+            ResultSetMetaData meta = rs.getMetaData();
+            int columnCount = meta.getColumnCount();
+
+            // Optionally include header row
+            String[] header = new String[columnCount];
+            for (int i = 1; i <= columnCount; i++) {
+                header[i - 1] = meta.getColumnLabel(i);
+            }
+            payrollData.add(header);
+
+            // Fetch each row as String[]
+            while (rs.next()) {
+                String[] row = new String[columnCount];
+                for (int i = 1; i <= columnCount; i++) {
+                    row[i - 1] = rs.getString(i);
+                }
+                payrollData.add(row);
+            }
+
+        } catch (SQLException e) {
+            System.err.println("Error reading payroll from database: " + e.getMessage());
+            e.printStackTrace();
+        }
+
+        return payrollData;
+    }
+
 
     // Utility methods for validation
     public static String capitalizeWords(String input, int maxLength) {

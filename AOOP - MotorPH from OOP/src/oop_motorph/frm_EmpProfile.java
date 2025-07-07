@@ -49,82 +49,37 @@ public class frm_EmpProfile extends javax.swing.JFrame {
  
     // Set role-based access controls
     private void setRoleBasedAccess(String role) {
-    // Disable all buttons and fields by default
-    //btn_MyRecords.setEnabled(false);
-    btn_LeaveMgt.setEnabled(false);
-    btn_SalaryAndStatutory.setEnabled(false);
-    //btn_Profile.setEnabled(false);
-    btn_Logout.setEnabled(false);
-    btn_EmpRecords.setEnabled(false);
-    btn_PayrollSummary.setEnabled(false);
-    cmb_empStatus.setEnabled(false);
-    cbox_position.setEnabled(false);
-    cmb_Supervisor.setEnabled(false);
+        // Disable all by default
+        btn_LeaveMgt.setEnabled(false);
+        btn_SalaryAndStatutory.setEnabled(false);
+        btn_Logout.setEnabled(false);
+        btn_EmpRecords.setEnabled(false);
+        btn_PayrollSummary.setEnabled(false);
+        cmb_empStatus.setEnabled(false);
+        cbox_position.setEnabled(false);
+        cmb_Supervisor.setEnabled(false);
 
-    // Enable specific buttons and fields based on the role
-    switch (role) {
-        case "Employee":
-            btn_LeaveMgt.setEnabled(true);
-            btn_SalaryAndStatutory.setEnabled(true);
-            btn_Logout.setEnabled(true);
-            btn_PayrollSummary.setEnabled(true);
-            break;
-        case "HR":
-            btn_LeaveMgt.setEnabled(true);
-            btn_SalaryAndStatutory.setEnabled(true);
-            btn_Logout.setEnabled(true);
-            btn_EmpRecords.setEnabled(true);
-            btn_PayrollSummary.setEnabled(true);
-            break;
-        case "Finance":
-            btn_LeaveMgt.setEnabled(true);
-            btn_SalaryAndStatutory.setEnabled(true);
-            btn_Logout.setEnabled(true);
-            btn_PayrollSummary.setEnabled(true);
-            btn_EmpRecords.setEnabled(true);
-            break;
-        case "DeptHead":
-            btn_LeaveMgt.setEnabled(true);
-            btn_SalaryAndStatutory.setEnabled(true);
-            btn_Logout.setEnabled(true);
-            btn_PayrollSummary.setEnabled(true);
-            break;
-        case "Finance TL":
-            btn_LeaveMgt.setEnabled(true);
-            btn_SalaryAndStatutory.setEnabled(true);
-            btn_Logout.setEnabled(true);
-            btn_PayrollSummary.setEnabled(true);
-            btn_EmpRecords.setEnabled(true);
-            break;
-        case "Payroll Manager":
-            btn_LeaveMgt.setEnabled(true);
-            btn_SalaryAndStatutory.setEnabled(true);
-            btn_Logout.setEnabled(true);
-            btn_PayrollSummary.setEnabled(true);
-            btn_EmpRecords.setEnabled(true);
-            break;
-        case "Accounting":
-            btn_LeaveMgt.setEnabled(true);
-            btn_SalaryAndStatutory.setEnabled(true);
-            btn_Logout.setEnabled(true);
-            btn_PayrollSummary.setEnabled(true);
-            btn_EmpRecords.setEnabled(true);
-            break;
-        case "Admin":
-            btn_LeaveMgt.setEnabled(true);
-            btn_SalaryAndStatutory.setEnabled(true);
-            btn_Logout.setEnabled(true);
-            btn_PayrollSummary.setEnabled(true);
-            btn_EmpRecords.setEnabled(true);
-            cmb_empStatus.setEnabled(true);
-            cbox_position.setEnabled(true);
-            cmb_Supervisor.setEnabled(true);
-            break;
-        default:
-            JOptionPane.showMessageDialog(this, "Invalid role!", "Error", JOptionPane.ERROR_MESSAGE);
-            break;
+        switch (role.toUpperCase()) {
+            case "EMPLOYEE" -> {
+                btn_LeaveMgt.setEnabled(true);
+                btn_SalaryAndStatutory.setEnabled(true);
+                btn_Logout.setEnabled(true);
+                btn_PayrollSummary.setEnabled(true);
+            }
+            case "HR" -> {
+                btn_LeaveMgt.setEnabled(true);
+                btn_SalaryAndStatutory.setEnabled(true);
+                btn_Logout.setEnabled(true);
+                btn_EmpRecords.setEnabled(true);
+                btn_PayrollSummary.setEnabled(true);
+            }
+            default -> {
+                JOptionPane.showMessageDialog(this, "Access denied for role: " + role, "Permission Denied", JOptionPane.ERROR_MESSAGE);
+                dispose(); // Close this frame if role is unauthorized
+            }
+        }
     }
-}
+
 
     /**
      * This method is called from within the constructor to initialize the form.

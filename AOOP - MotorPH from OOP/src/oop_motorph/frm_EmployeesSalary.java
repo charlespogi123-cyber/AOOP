@@ -29,73 +29,35 @@ public class frm_EmployeesSalary extends javax.swing.JFrame {
         setRoleBasedAccess(role);
     }
 
-        public void setRoleBasedAccess(String role) {
-        // Default: Disable all buttons
+    public void setRoleBasedAccess(String role) {
+        // Disable all buttons by default
         btn_MyRecords.setEnabled(false);
         btn_EmpRecords.setEnabled(false);
         btn_Profile.setEnabled(false);
         btn_Attendance.setEnabled(false);
+        btn_PayrollProcessing.setEnabled(false);
+        btn_ViewPayInfo.setEnabled(false);
 
-
-        // Enable buttons based on role (case-insensitive)
         switch (role.toUpperCase()) {
-            case "EMPLOYEE":
-                // Employees cannot access payroll processing
-                break;
-            case "FINANCE":
-                // Finance can access:
-                btn_MyRecords.setEnabled(true);
-                btn_Profile.setEnabled(true);
-                btn_EmpRecords.setEnabled(true);
-                btn_ViewPayInfo.setEnabled(false);               
-                break;
             case "HR":
+                // HR has access to everything
+                btn_MyRecords.setEnabled(true);
+                btn_EmpRecords.setEnabled(true);
                 btn_Profile.setEnabled(true);
                 btn_Attendance.setEnabled(true);
-                btn_PayrollProcessing.setEnabled(false);
-                btn_MyRecords.setEnabled(true);              
+                btn_PayrollProcessing.setEnabled(true);
+                btn_ViewPayInfo.setEnabled(true);
                 break;
-            case "DEPTHEAD":
-                // Dept-Head can access:
-                //no access
+
+            case "EMPLOYEE":
+                // Employee has limited/no access
+                // You can selectively enable certain features if needed
                 break;
-            case "FINANCE TL":
-                // Finance TL can access:
-                btn_MyRecords.setEnabled(true);
-                btn_Profile.setEnabled(true);
-                btn_EmpRecords.setEnabled(true);
-                btn_Attendance.setEnabled(true);
-                btn_ViewPayInfo.setEnabled(false);
-           
-                break;
-            case "PAYROLL MANAGER":
-                // Payroll Manager can access:
-                btn_MyRecords.setEnabled(true);
-                btn_Profile.setEnabled(true);
-                btn_EmpRecords.setEnabled(true);
-                btn_ViewPayInfo.setEnabled(false);
-             
-                break;
-            case "ACCOUNTING":
-                // Accounting can access:
-                btn_MyRecords.setEnabled(true);
-                btn_Profile.setEnabled(true);
-                btn_EmpRecords.setEnabled(true);
-                btn_ViewPayInfo.setEnabled(false);
-               
-                break;
-            case "ADMIN":
-                // Admin can access:
-                btn_EmpRecords.setEnabled(true);
-                btn_Profile.setEnabled(true);
-                btn_MyRecords.setEnabled(true);
-                btn_Attendance.setEnabled(true);
-                break;
+
             default:
                 JOptionPane.showMessageDialog(this, "Invalid role: " + role, "Error", JOptionPane.ERROR_MESSAGE);
                 break;
         }
-    
     }
     
     

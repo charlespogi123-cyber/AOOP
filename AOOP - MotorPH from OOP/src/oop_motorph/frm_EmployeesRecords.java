@@ -28,100 +28,41 @@ public class frm_EmployeesRecords extends javax.swing.JFrame {
         setRoleBasedAccess(role);
     }
 
-        public void setRoleBasedAccess(String role) {
-        // Default: Disable all buttons
+    public void setRoleBasedAccess(String role) {
+        // Disable all by default
         btn_MyRecords.setEnabled(false);
-        //btn_EmpRecords.setEnabled(false);
         btn_Profile.setEnabled(false);
         btn_Attendance.setEnabled(false);
         btn_AddEmp.setEnabled(false);
         btn_DelEmp.setEnabled(false);
         btn_SalaryAndStatutory.setEnabled(false);
         btn_PayrollProcessing.setEnabled(false);
-       // btn_ViewEmp.setEnabled(false);
+        // btn_ViewEmp.setEnabled(false); // Uncomment if used elsewhere
 
-        // Enable buttons based on role (case-insensitive)
         switch (role.toUpperCase()) {
-            case "EMPLOYEE":
-                //emp have no access to this frame
-                break;
-            case "FINANCE":
-                // Finance can access:
-                btn_Profile.setEnabled(true);
-                btn_AddEmp.setEnabled(false);
-                btn_DelEmp.setEnabled(false);
-                btn_Attendance.setEnabled(true);
-                btn_SalaryAndStatutory.setEnabled(true);
-                btn_PayrollProcessing.setEnabled(true);
-                btn_ViewEmp.setEnabled(false);
-                break;
             case "HR":
-                // HR can access:
-                btn_Profile.setEnabled(true);
                 btn_MyRecords.setEnabled(true);
+                btn_Profile.setEnabled(true);
                 btn_Attendance.setEnabled(true);
                 btn_AddEmp.setEnabled(true);
                 btn_DelEmp.setEnabled(true);
                 btn_SalaryAndStatutory.setEnabled(true);
-                btn_ViewEmp.setEnabled(true);
+                // btn_ViewEmp.setEnabled(true);
                 break;
-            case "DEPTHEAD":
-                // Dept-Head can access:
-                btn_Profile.setEnabled(true);
-                btn_MyRecords.setEnabled(true);
-                btn_Attendance.setEnabled(true);
-                btn_SalaryAndStatutory.setEnabled(true);
-                break;
-            case "FINANCE TL":
-                // Finance TL can access:
-                btn_MyRecords.setEnabled(true);
-                btn_Profile.setEnabled(true);
-                btn_AddEmp.setEnabled(false);
-                btn_DelEmp.setEnabled(false);
-                btn_ViewEmp.setEnabled(false);
-                btn_Attendance.setEnabled(true);
-                btn_SalaryAndStatutory.setEnabled(true);
-                btn_PayrollProcessing.setEnabled(true);
-                break;
-            case "PAYROLL MANAGER":
-                // Payroll Manager can access:
-                btn_MyRecords.setEnabled(true);
-                btn_Profile.setEnabled(true);
-                btn_AddEmp.setEnabled(false);
-                btn_DelEmp.setEnabled(false);
-                btn_Attendance.setEnabled(true);
-                btn_SalaryAndStatutory.setEnabled(true);
-                btn_PayrollProcessing.setEnabled(true);
-                btn_ViewEmp.setEnabled(false);
-                break;
-            case "ACCOUNTING":
-                // Accounting can access:
-                btn_MyRecords.setEnabled(true);
-                btn_Profile.setEnabled(true);
-             // btn_AddEmp.setEnabled(true);
-             // btn_DelEmp.setEnabled(true);
-                btn_Attendance.setEnabled(true);
-                btn_SalaryAndStatutory.setEnabled(true);
-                btn_PayrollProcessing.setEnabled(true);
-                btn_ViewEmp.setEnabled(false);
-                break;
-            case "ADMIN":
-                // Admin can access:
-                btn_Profile.setEnabled(true);
-                btn_MyRecords.setEnabled(true);
-                btn_Attendance.setEnabled(true);
-                btn_AddEmp.setEnabled(true);
-                btn_DelEmp.setEnabled(true);
-                btn_SalaryAndStatutory.setEnabled(true);
-                btn_PayrollProcessing.setEnabled(true);
+            case "EMPLOYEE":
+                // Employee has no access to this frame
+                JOptionPane.showMessageDialog(this, "Access denied: This section is for HR only.", "Permission Denied", JOptionPane.WARNING_MESSAGE);
+                dispose(); // Close the window to prevent further access
                 break;
             default:
-                JOptionPane.showMessageDialog(this, "Invalid role: " + role, "Error", JOptionPane.ERROR_MESSAGE);
+                JOptionPane.showMessageDialog(this, "Access denied for role: " + role, "Invalid Role", JOptionPane.ERROR_MESSAGE);
+                dispose();
                 break;
         }
-    }        
+    }
 
-    
+
+
     private void displayEmployeeData() {
     List<EmpDetails> employees = CSVHandler.getEmployeeData();
     DefaultTableModel model = (DefaultTableModel) tbl_Employees.getModel();

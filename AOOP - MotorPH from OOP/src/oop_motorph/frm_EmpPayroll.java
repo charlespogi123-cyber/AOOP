@@ -1,18 +1,20 @@
 
 package oop_motorph;
 
-import javax.swing.JOptionPane;
+import javax.swing.*;
 import javax.swing.table.DefaultTableModel;
+import java.awt.image.BufferedImage;
 import java.io.*;
 import java.util.*;
-import java.awt.print.*; 
-import javax.swing.JTextArea;
-
+import java.awt.print.*;
+import java.awt.Graphics2D;
 
 public class frm_EmpPayroll extends javax.swing.JFrame {
 
     public frm_EmpPayroll() {
         initComponents();
+
+
 
         // Set the window to center and disable resizable
         setLocationRelativeTo(null);
@@ -38,115 +40,57 @@ public class frm_EmpPayroll extends javax.swing.JFrame {
     }
 
     private void loadPayrollData(EmpDetails employee) {
-        // Get payroll data from CSVHandler
-        List<String[]> payrollData = CSVHandler.readPayrollCSV();
+        List<String[]> payrollData = DatabaseHandler.readPayrollFromDatabase();
 
-        // Define column headers
         String[] columns = {
-            "Transaction ID", "Emp ID", "First Name", "Last Name",
-            "Pay Date From", "Pay Date To", "Basic Salary", "Hourly Rate",
-            "Total Allowances", "Hrs Per Month", "Total Hrs Worked", "Adj Earnings",
-            "Total Earnings", "Tardiness Absences", "EE Tax", "EE SSS",
-            "EE Pagibig", "EE Philhealth", "Adj Deductions", "Total Deductions", "Net Pay", "Pay Status"
+                "Period Start", "Period End", "Payroll ID", "EmployeeID",
+                "Regular Hours", "Overtime Hours", "Total Hours",
+                "Salary", "Rice", "Phone", "Clothing", "Total Allowances",
+                "Gross", "Taxable Income", "SSS", "PhilHealth", "PagIBIG",
+                "Tax", "Deductions", "Net Pay"
         };
 
-        // Create a table model
         DefaultTableModel model = new DefaultTableModel(columns, 0);
 
-        // Add rows to the model for the logged-in user only
         for (String[] row : payrollData) {
-            // Check if the row belongs to the logged-in user and is approved
-            if (row.length >= 22 && row[1].equals(employee.getEmpID()) && "Approved".equalsIgnoreCase(row[21].trim())) {
-                model.addRow(row);
+            if (row.length >= 20 && row[3].trim().equals(employee.getEmpID().trim())) {
+                model.addRow(Arrays.copyOf(row, 20));
             }
         }
 
-        // Set the model to tbl_Payroll
         tbl_Payroll.setModel(model);
     }
 
     public void setRoleBasedAccess(String role) {
-        // Default: Disable all buttons
+        // Disable all buttons by default
         btn_MyRecords.setEnabled(false);
         btn_LeaveMgt.setEnabled(false);
         btn_SalaryAndStatutory.setEnabled(false);
         btn_Profile.setEnabled(false);
-        btn_EmpRecords.setEnabled(false); // Disable by default
-        //btn_PayrollSummary.setEnabled(false);
-        btn_printPayslip.setEnabled(true);
+        btn_EmpRecords.setEnabled(false);
+        btn_printPayslip.setEnabled(true); // Still enabled by default
+        btn_Logout.setEnabled(false);
 
-        // Enable buttons based on role (case-insensitive)
         switch (role.toUpperCase()) {
-            case "EMPLOYEE":
-                // Employees can access:
-                btn_LeaveMgt.setEnabled(true);
-                btn_SalaryAndStatutory.setEnabled(true);
-                btn_Profile.setEnabled(true);
-                btn_Logout.setEnabled(true);
-                btn_MyRecords.setEnabled(true); // Employees can access their own records
-                break;
-            case "FINANCE":
-                // Finance can access:
-                btn_LeaveMgt.setEnabled(true);
-                btn_SalaryAndStatutory.setEnabled(true);
-                btn_Profile.setEnabled(true);
-                btn_Logout.setEnabled(true);
-                btn_MyRecords.setEnabled(true); 
-                btn_EmpRecords.setEnabled(true); 
-                break;
             case "HR":
-                // HR can access:
+                // HR gets full access
+                btn_MyRecords.setEnabled(true);
                 btn_LeaveMgt.setEnabled(true);
                 btn_SalaryAndStatutory.setEnabled(true);
                 btn_Profile.setEnabled(true);
-                btn_Logout.setEnabled(true);
-                btn_EmpRecords.setEnabled(true); // HR can access employee records
-                btn_MyRecords.setEnabled(true);
-                break;
-            case "DEPTHEAD":
-                // Dept-Head can access:
-                btn_LeaveMgt.setEnabled(true);
-                btn_SalaryAndStatutory.setEnabled(true);
-                btn_Profile.setEnabled(true);
-                btn_Logout.setEnabled(true);
-                btn_MyRecords.setEnabled(true);
-                break;
-            case "FINANCE TL":
-                // Finance TL can access:
-                btn_LeaveMgt.setEnabled(true);
-                btn_SalaryAndStatutory.setEnabled(true);
-                btn_Profile.setEnabled(true);
-                btn_Logout.setEnabled(true);
-                btn_MyRecords.setEnabled(true);
                 btn_EmpRecords.setEnabled(true);
+                btn_Logout.setEnabled(true);
                 break;
-            case "PAYROLL MANAGER":
-                // Payroll Manager can access:
+
+            case "EMPLOYEE":
+                // Employees have access to personal info only
+                btn_MyRecords.setEnabled(true);
                 btn_LeaveMgt.setEnabled(true);
                 btn_SalaryAndStatutory.setEnabled(true);
                 btn_Profile.setEnabled(true);
                 btn_Logout.setEnabled(true);
-                btn_MyRecords.setEnabled(true);
-                btn_EmpRecords.setEnabled(true);
                 break;
-            case "ACCOUNTING":
-                // Accounting can access:
-                btn_LeaveMgt.setEnabled(true);
-                btn_SalaryAndStatutory.setEnabled(true);
-                btn_Profile.setEnabled(true);
-                btn_Logout.setEnabled(true);
-                btn_MyRecords.setEnabled(true);
-                btn_EmpRecords.setEnabled(true);
-                break;
-            case "ADMIN":
-                // Admin can access:
-                btn_LeaveMgt.setEnabled(true);
-                btn_SalaryAndStatutory.setEnabled(true);
-                btn_Profile.setEnabled(true);
-                btn_Logout.setEnabled(true);
-                btn_EmpRecords.setEnabled(true); // Admin can access employee records
-                btn_MyRecords.setEnabled(true);
-                break;
+
             default:
                 JOptionPane.showMessageDialog(this, "Invalid role: " + role, "Error", JOptionPane.ERROR_MESSAGE);
                 break;
@@ -154,47 +98,132 @@ public class frm_EmpPayroll extends javax.swing.JFrame {
     }
 
 
-        
+
     private String generatePayslip(int selectedRow) {
-    if (selectedRow == -1) {
-        JOptionPane.showMessageDialog(this, "Please select a payroll record first.", "No Selection", JOptionPane.WARNING_MESSAGE);
-        return null;
+        if (selectedRow == -1) {
+            JOptionPane.showMessageDialog(this, "Please select a payroll record first.", "No Selection", JOptionPane.WARNING_MESSAGE);
+            return null;
+        }
+
+        String startDate = tbl_Payroll.getValueAt(selectedRow, 0).toString();
+        String endDate = tbl_Payroll.getValueAt(selectedRow, 1).toString();
+        String payrollID = tbl_Payroll.getValueAt(selectedRow, 2).toString();
+        String empID = tbl_Payroll.getValueAt(selectedRow, 3).toString();
+
+        String regularHours = tbl_Payroll.getValueAt(selectedRow, 4).toString();
+        String overtimeHours = tbl_Payroll.getValueAt(selectedRow, 5).toString();
+        String totalHours = tbl_Payroll.getValueAt(selectedRow, 6).toString();
+
+        String salary = tbl_Payroll.getValueAt(selectedRow, 7).toString();
+        String rice = tbl_Payroll.getValueAt(selectedRow, 8).toString();
+        String phone = tbl_Payroll.getValueAt(selectedRow, 9).toString();
+        String clothing = tbl_Payroll.getValueAt(selectedRow, 10).toString();
+        String totalAllow = tbl_Payroll.getValueAt(selectedRow, 11).toString();
+
+        String gross = tbl_Payroll.getValueAt(selectedRow, 12).toString();
+        String taxable = tbl_Payroll.getValueAt(selectedRow, 13).toString();
+
+        String sss = tbl_Payroll.getValueAt(selectedRow, 14).toString();
+        String philhealth = tbl_Payroll.getValueAt(selectedRow, 15).toString();
+        String pagibig = tbl_Payroll.getValueAt(selectedRow, 16).toString();
+        String tax = tbl_Payroll.getValueAt(selectedRow, 17).toString();
+        String deductions = tbl_Payroll.getValueAt(selectedRow, 18).toString();
+        String netPay = tbl_Payroll.getValueAt(selectedRow, 19).toString();
+
+        return """
+    <html>
+    <head>
+        <style>
+            body {
+                font-family: Arial, sans-serif;
+                background: #f3f3f3;
+                padding: 20px;
+            }
+            table {
+                border-collapse: collapse;
+                width: 100%%;
+                background-color: #fff;
+                border: 1px solid #ccc;
+            }
+            th {
+                background-color: #2c3e50;
+                color: white;
+                padding: 10px;
+                text-align: left;
+            }
+            td {
+                padding: 8px 12px;
+                border-bottom: 1px solid #eee;
+                vertical-align: top;
+            }
+            .section {
+                background-color: #f9f9f9;
+                font-weight: bold;
+                color: #2c3e50;
+            }
+            .highlight {
+                background-color: #eafaf1;
+                color: #2e7d32;
+                font-weight: bold;
+            }
+        </style>
+    </head>
+    <body>
+        <h2 style='text-align:center;'>MOTORPH Payslip</h2>
+        <table>
+            <tr class='section'><td colspan='6'>Employee & Payroll Info</td></tr>
+            <tr>
+                <td><strong>Payroll ID</strong></td><td>%s</td>
+                <td><strong>Employee ID</strong></td><td>%s</td>
+                <td><strong>Pay Period</strong></td><td>%s to %s</td>
+            </tr>
+            <tr class='section'><td colspan='6'>Work Hours</td></tr>
+            <tr>
+                <td><strong>Regular Hours</strong></td><td>%s hrs</td>
+                <td><strong>Overtime Hours</strong></td><td>%s hrs</td>
+                <td><strong>Total Hours</strong></td><td>%s hrs</td>
+            </tr>
+            <tr class='section'><td colspan='6'>Earnings & Allowances</td></tr>
+            <tr>
+                <td><strong>Basic Salary</strong></td><td>₱%s</td>
+                <td><strong>Rice Allowance</strong></td><td>₱%s</td>
+                <td><strong>Phone Allowance</strong></td><td>₱%s</td>
+            </tr>
+            <tr>
+                <td><strong>Clothing Allowance</strong></td><td>₱%s</td>
+                <td><strong>Total Allowances</strong></td><td colspan='3'>₱%s</td>
+            </tr>
+            <tr class='section'><td colspan='6'>Deductions</td></tr>
+            <tr>
+                <td><strong>SSS</strong></td><td>₱%s</td>
+                <td><strong>PhilHealth</strong></td><td>₱%s</td>
+                <td><strong>Pag-IBIG</strong></td><td>₱%s</td>
+            </tr>
+            <tr>
+                <td><strong>Tax Withheld</strong></td><td>₱%s</td>
+                <td><strong>Total Deductions</strong></td><td colspan='3'>₱%s</td>
+            </tr>
+            <tr class='section'><td colspan='6'>Summary</td></tr>
+            <tr>
+                <td><strong>Gross Pay</strong></td><td>₱%s</td>
+                <td><strong>Taxable Income</strong></td><td>₱%s</td>
+                <td class='highlight'><strong>NET PAY</strong></td><td class='highlight'>₱%s</td>
+            </tr>
+        </table>
+        <p style='text-align:center; font-size:11px; color:#777; margin-top:15px;'>
+            This is a system-generated payslip. No signature required.
+        </p>
+    </body>
+    </html>
+    """.formatted(
+                payrollID, empID, startDate, endDate,
+                regularHours, overtimeHours, totalHours,
+                salary, rice, phone, clothing, totalAllow,
+                sss, philhealth, pagibig, tax, deductions,
+                gross, taxable, netPay
+        );
     }
 
-    // Extract data from the selected row
-    String empID = tbl_Payroll.getValueAt(selectedRow, 1).toString();
-    String firstName = tbl_Payroll.getValueAt(selectedRow, 2).toString();
-    String lastName = tbl_Payroll.getValueAt(selectedRow, 3).toString();
-    String payDateFrom = tbl_Payroll.getValueAt(selectedRow, 4).toString();
-    String payDateTo = tbl_Payroll.getValueAt(selectedRow, 5).toString();
-    String basicSalary = tbl_Payroll.getValueAt(selectedRow, 6).toString();
-    String hourlyRate = tbl_Payroll.getValueAt(selectedRow, 7).toString();
-    String totalAllow = tbl_Payroll.getValueAt(selectedRow, 8).toString();
-    String totalHoursWorked = tbl_Payroll.getValueAt(selectedRow, 10).toString();
-    String totalEarnings = tbl_Payroll.getValueAt(selectedRow, 12).toString();
-    String totalDeductions = tbl_Payroll.getValueAt(selectedRow, 19).toString();
-    String netPay = tbl_Payroll.getValueAt(selectedRow, 20).toString();
-    
-    // Create a formatted payslip
-    return "=================================\n"
-         + "           EMPLOYEE PAYSLIP       \n"
-         + "=================================\n"
-         + "Employee ID: " + empID + "\n"
-         + "Name: " + firstName + " " + lastName + "\n"
-         + "Pay Period: " + payDateFrom + " to " + payDateTo + "\n"
-         + "---------------------------------\n"
-         + "Monthly Basic Salary: ₱" + basicSalary + "\n"
-         + "\n"
-         + "Hourly Rate: ₱" + hourlyRate + "\n"
-         + "Hours Worked: " + totalHoursWorked + " hrs\n"
-         + "Allowances: ₱" + totalAllow + "\n"
-        
-         + "Total Earnings: ₱" + totalEarnings + "\n"
-         + "Total Deductions: ₱" + totalDeductions + "\n"
-         + "---------------------------------\n"
-         + "NET PAY: ₱" + netPay + "\n"
-         + "=================================\n";
-}
 
     /**
      * This method is called from within the constructor to initialize the form.
@@ -604,35 +633,73 @@ public class frm_EmpPayroll extends javax.swing.JFrame {
         
     }//GEN-LAST:event_btn_EmpRecordsActionPerformed
 
-    private void btn_printPayslipActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btn_printPayslipActionPerformed
-    
-    int selectedRow = tbl_Payroll.getSelectedRow();
-    String payslip = generatePayslip(selectedRow);
-    
-    if (payslip != null) {
-        JTextArea textArea = new JTextArea(payslip);
-        textArea.setEditable(false);
-        textArea.setFont(new java.awt.Font("Monospaced", java.awt.Font.PLAIN, 12));
+    private void btn_printPayslipActionPerformed(java.awt.event.ActionEvent evt) {
+        int selectedRow = tbl_Payroll.getSelectedRow();
+        String payslipHTML = generatePayslip(selectedRow);
 
-        int option = JOptionPane.showConfirmDialog(null, new javax.swing.JScrollPane(textArea), 
-                                                   "Payslip Preview", JOptionPane.YES_NO_OPTION, 
-                                                   JOptionPane.PLAIN_MESSAGE);
-
-        if (option == JOptionPane.YES_OPTION) {
+        if (payslipHTML != null) {
             try {
-                boolean complete = textArea.print();
-                if (complete) {
-                    JOptionPane.showMessageDialog(this, "Printing successful!", "Print", JOptionPane.INFORMATION_MESSAGE);
-                } else {
-                    JOptionPane.showMessageDialog(this, "Printing canceled!", "Print", JOptionPane.WARNING_MESSAGE);
+                // Render HTML into a JEditorPane
+                JEditorPane editorPane = new JEditorPane();
+                editorPane.setContentType("text/html");
+                editorPane.setText(payslipHTML);
+                editorPane.setSize(1000, editorPane.getPreferredSize().height);
+                editorPane.setEditable(false);
+
+                // Force layout & calculate correct height
+                editorPane.revalidate();
+                editorPane.repaint();
+
+                // Optional preview panel
+                JScrollPane preview = new JScrollPane(editorPane);
+                int option = JOptionPane.showConfirmDialog(null, preview, "Payslip Preview",
+                        JOptionPane.YES_NO_OPTION, JOptionPane.PLAIN_MESSAGE);
+
+                if (option == JOptionPane.YES_OPTION) {
+                    // Force layout again just before image capture
+                    editorPane.setSize(1000, editorPane.getPreferredSize().height);
+
+                    // Create BufferedImage of appropriate height
+                    int width = editorPane.getWidth();
+                    int height = editorPane.getPreferredSize().height;
+
+                    BufferedImage image = new BufferedImage(width, height, BufferedImage.TYPE_INT_RGB);
+                    Graphics2D g2d = image.createGraphics();
+                    editorPane.printAll(g2d);
+                    g2d.dispose();
+
+                    // Set up printer job to print the image
+                    PrinterJob job = PrinterJob.getPrinterJob();
+                    job.setPrintable((graphics, pageFormat, pageIndex) -> {
+                        if (pageIndex > 0) return Printable.NO_SUCH_PAGE;
+
+                        double x = pageFormat.getImageableX();
+                        double y = pageFormat.getImageableY();
+
+                        // Scale image if it's wider than printable area
+                        double scaleX = pageFormat.getImageableWidth() / image.getWidth();
+                        double scaleY = pageFormat.getImageableHeight() / image.getHeight();
+                        double scale = Math.min(scaleX, scaleY);
+
+                        Graphics2D g = (Graphics2D) graphics;
+                        g.translate(x, y);
+                        g.scale(scale, scale);
+                        g.drawImage(image, 0, 0, null);
+
+                        return Printable.PAGE_EXISTS;
+                    });
+
+                    if (job.printDialog()) {
+                        job.print();
+                        JOptionPane.showMessageDialog(this, "Printing successful!", "Print", JOptionPane.INFORMATION_MESSAGE);
+                    }
                 }
             } catch (Exception e) {
                 JOptionPane.showMessageDialog(this, "Print Error: " + e.getMessage(), "Error", JOptionPane.ERROR_MESSAGE);
             }
         }
     }
-    
-    }//GEN-LAST:event_btn_printPayslipActionPerformed
+//GEN-LAST:event_btn_printPayslipActionPerformed
 
     /**
      * @param args the command line arguments
