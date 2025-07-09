@@ -1,4 +1,3 @@
-
 package oop_motorph;
 import java.time.LocalDate;
 import java.time.LocalTime;
@@ -7,25 +6,65 @@ import java.time.format.DateTimeParseException;
 import javax.swing.table.DefaultTableModel;
 import java.util.List;
 import javax.swing.JOptionPane;
+import java.awt.Color;
+import java.awt.Cursor;
+import java.awt.Font;
 
 public class frm_EmpAttLeave extends javax.swing.JFrame {
 
     
     public frm_EmpAttLeave() {
         initComponents();
-        displayLoggedInEmployeeAttendance();
         
-        //JBF: Sets the windown to center and disable resizable
-        setLocationRelativeTo(null);
-        setResizable(false);
+        // Set window properties - larger size to show all content
+        setResizable(true);
         setTitle("Employee Attendance");
+        setSize(1400, 950); // Increased size to accommodate all content
+        setMinimumSize(new java.awt.Dimension(1150, 800));
+        setLocationRelativeTo(null); // Center the window after setting size
+        
+        // Apply modern styling after components are initialized
+        applyModernStyling();
+        addHoverEffects();
+        
+        // Icons are already properly positioned by the form designer - no need to reposition
+        
+        displayLoggedInEmployeeAttendance();
     
-    EmpDetails employee = EmpUserSession.getInstance().getCurrentUser();
-    if (employee !=null)  {
-        String role = CSVHandler.loadCredentials().get(employee.getEmpID())[1];
-        setRoleBasedAccess(role);
-    } else {
-        JOptionPane.showMessageDialog(this, "User not logged in!", "Error", JOptionPane.ERROR_MESSAGE);
+        EmpDetails employee = EmpUserSession.getInstance().getCurrentUser();
+        if (employee != null) {
+            String role = CSVHandler.loadCredentials().get(employee.getEmpID())[1];
+            setRoleBasedAccess(role);
+        } else {
+            JOptionPane.showMessageDialog(this, "User not logged in!", "Error", JOptionPane.ERROR_MESSAGE);
+        }
+        
+        // Force button sizes after everything is fully initialized
+        forceButtonSizes();
+    }
+
+    @Override
+    public void doLayout() {
+        super.doLayout();
+        
+        // Force navigation button sizes after layout
+        java.awt.Dimension navButtonSize = new java.awt.Dimension(200, 45);
+        
+        if (btn_Profile != null) {
+            btn_Profile.setSize(navButtonSize);
+            btn_Profile.setPreferredSize(navButtonSize);
+        }
+        if (btn_LeaveMgt != null) {
+            btn_LeaveMgt.setSize(navButtonSize);
+            btn_LeaveMgt.setPreferredSize(navButtonSize);
+        }
+        if (btn_SalaryAndStatutory != null) {
+            btn_SalaryAndStatutory.setSize(navButtonSize);
+            btn_SalaryAndStatutory.setPreferredSize(navButtonSize);
+        }
+        if (btn_PayrollSummary != null) {
+            btn_PayrollSummary.setSize(navButtonSize);
+            btn_PayrollSummary.setPreferredSize(navButtonSize);
         }
     }
 
@@ -72,39 +111,90 @@ public class frm_EmpAttLeave extends javax.swing.JFrame {
         }
     }
     
+    private void forceButtonSizes() {
+        // Use SwingUtilities.invokeLater to ensure this runs after layout is complete
+        javax.swing.SwingUtilities.invokeLater(() -> {
+            // Force navigation button sizes to ensure they match the profile form
+            java.awt.Dimension navButtonSize = new java.awt.Dimension(200, 45);
+            
+            // Set sizes for all navigation buttons
+            javax.swing.JButton[] navButtons = {btn_Profile, btn_LeaveMgt, btn_SalaryAndStatutory, btn_PayrollSummary};
+            
+            for (javax.swing.JButton button : navButtons) {
+                button.setPreferredSize(navButtonSize);
+                button.setMinimumSize(navButtonSize);
+                button.setMaximumSize(navButtonSize);
+                button.setSize(navButtonSize);
+                
+                // Force the button to maintain its size
+                button.putClientProperty("JComponent.sizeVariant", "regular");
+            }
+            
+            // Force the entire form to revalidate and repaint
+            this.revalidate();
+            this.repaint();
+            
+            // Also force each button to revalidate
+            for (javax.swing.JButton button : navButtons) {
+                button.revalidate();
+                button.repaint();
+            }
+        });
+    }
+    
 // To display the data of the logged in User
     private void displayLoggedInEmployeeAttendance() {
-    List<EmpAttLeave> attendanceList = CSVHandler.getAttendanceData();
-    DefaultTableModel model = (DefaultTableModel) tbl_Attendance.getModel();
+        List<EmpAttLeave> attendanceList = CSVHandler.getAttendanceData();
+        DefaultTableModel model = (DefaultTableModel) tbl_Attendance.getModel();
   
-    //to disable tbl edit
-    tbl_Attendance.setDefaultEditor(Object.class, null);
+        //to disable tbl edit
+        tbl_Attendance.setDefaultEditor(Object.class, null);
     
-    // Clear existing data
-    model.setRowCount(0);
+        // Clear existing data
+        model.setRowCount(0);
 
-    // Get the currently logged-in employee
-    EmpDetails employee = EmpUserSession.getInstance().getCurrentUser();
-    if (employee == null) {
-        JOptionPane.showMessageDialog(this, "User not logged in!", "Error", JOptionPane.ERROR_MESSAGE);
-        return;
-    }
-
-    String loggedInEmpID = employee.getEmpID(); // Get Employee ID
-
-    // Filter and display only the logged-in employee's records
-    for (EmpAttLeave att : attendanceList) {
-        if (att.getEmpID().equals(loggedInEmpID)) {
-            model.addRow(new Object[]{
-                att.getEmpID(), att.getFirstName(), att.getLastName(), att.getEmployeeStatus(),
-                att.getPosition(), att.getImmediateSupervisor(), att.getAttDateFrom(), att.getAttDateTo(), 
-                att.getTimeIn(), att.getTimeOut(), att.getHoursWorked(), att.getDuration(), 
-                att.getAttendanceType(), att.getAttendanceStatus(), att.getVlCount(), 
-                att.getVlUsed(), att.getVlBalance(), att.getSlCount(), att.getSlUsed(), att.getSlBalance()
-            });
+        // Get the currently logged-in employee
+        EmpDetails employee = EmpUserSession.getInstance().getCurrentUser();
+        if (employee == null) {
+            JOptionPane.showMessageDialog(this, "User not logged in!", "Error", JOptionPane.ERROR_MESSAGE);
+            return;
         }
+
+        String loggedInEmpID = employee.getEmpID(); // Get Employee ID
+        
+        // Variables to track leave summary
+        double totalVlCount = 0, totalVlUsed = 0, totalSlCount = 0, totalSlUsed = 0;
+        double vlBalance = 0, slBalance = 0;
+
+        // Filter and display only the logged-in employee's records
+        for (EmpAttLeave att : attendanceList) {
+            if (att.getEmpID().equals(loggedInEmpID)) {
+                model.addRow(new Object[]{
+                    att.getEmpID(), att.getFirstName(), att.getLastName(), att.getEmployeeStatus(),
+                    att.getPosition(), att.getImmediateSupervisor(), att.getAttDateFrom(), att.getAttDateTo(), 
+                    att.getTimeIn(), att.getTimeOut(), att.getHoursWorked(), att.getDuration(), 
+                    att.getAttendanceType(), att.getAttendanceStatus(), att.getVlCount(), 
+                    att.getVlUsed(), att.getVlBalance(), att.getSlCount(), att.getSlUsed(), att.getSlBalance()
+                });
+                
+                // Update leave summary (taking the last values found)
+                totalVlCount = parseDoubleSafe(att.getVlCount());
+                totalVlUsed = parseDoubleSafe(att.getVlUsed());
+                vlBalance = parseDoubleSafe(att.getVlBalance());
+                totalSlCount = parseDoubleSafe(att.getSlCount());
+                totalSlUsed = parseDoubleSafe(att.getSlUsed());
+                slBalance = parseDoubleSafe(att.getSlBalance());
+            }
+        }
+        
+        // Update the text fields with leave summary
+        txt_vlCount.setText(String.valueOf(totalVlCount));
+        txt_vlUsed.setText(String.valueOf(totalVlUsed));
+        txt_vlBal.setText(String.valueOf(vlBalance));
+        txt_slCount.setText(String.valueOf(totalSlCount));
+        txt_slUsed.setText(String.valueOf(totalSlUsed));
+        txt_slBal.setText(String.valueOf(slBalance));
     }
-}
 
     /**
      * This method is called from within the constructor to initialize the form.
@@ -309,7 +399,7 @@ public class frm_EmpAttLeave extends javax.swing.JFrame {
         );
 
         btn_Profile.setBackground(new java.awt.Color(51, 51, 255));
-        btn_Profile.setFont(new java.awt.Font("Segoe UI", 1, 12)); // NOI18N
+        btn_Profile.setFont(new java.awt.Font("Segoe UI", 1, 14)); // NOI18N
         btn_Profile.setForeground(new java.awt.Color(255, 255, 255));
         btn_Profile.setText("Profile");
         btn_Profile.addActionListener(new java.awt.event.ActionListener() {
@@ -319,7 +409,7 @@ public class frm_EmpAttLeave extends javax.swing.JFrame {
         });
 
         btn_LeaveMgt.setBackground(new java.awt.Color(51, 51, 255));
-        btn_LeaveMgt.setFont(new java.awt.Font("Segoe UI", 1, 12)); // NOI18N
+        btn_LeaveMgt.setFont(new java.awt.Font("Segoe UI", 1, 14)); // NOI18N
         btn_LeaveMgt.setForeground(new java.awt.Color(255, 255, 0));
         btn_LeaveMgt.setText("Attendance & Leave");
         btn_LeaveMgt.addActionListener(new java.awt.event.ActionListener() {
@@ -329,7 +419,7 @@ public class frm_EmpAttLeave extends javax.swing.JFrame {
         });
 
         btn_SalaryAndStatutory.setBackground(new java.awt.Color(51, 51, 255));
-        btn_SalaryAndStatutory.setFont(new java.awt.Font("Segoe UI", 1, 12)); // NOI18N
+        btn_SalaryAndStatutory.setFont(new java.awt.Font("Segoe UI", 1, 14)); // NOI18N
         btn_SalaryAndStatutory.setForeground(new java.awt.Color(255, 255, 255));
         btn_SalaryAndStatutory.setText("Salary & Statutory");
         btn_SalaryAndStatutory.addActionListener(new java.awt.event.ActionListener() {
@@ -339,7 +429,7 @@ public class frm_EmpAttLeave extends javax.swing.JFrame {
         });
 
         btn_PayrollSummary.setBackground(new java.awt.Color(51, 51, 255));
-        btn_PayrollSummary.setFont(new java.awt.Font("Segoe UI", 1, 12)); // NOI18N
+        btn_PayrollSummary.setFont(new java.awt.Font("Segoe UI", 1, 14)); // NOI18N
         btn_PayrollSummary.setForeground(new java.awt.Color(255, 255, 255));
         btn_PayrollSummary.setText("Payroll Summary");
         btn_PayrollSummary.addActionListener(new java.awt.event.ActionListener() {
@@ -456,9 +546,9 @@ public class frm_EmpAttLeave extends javax.swing.JFrame {
                         .addGroup(jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
                             .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, jPanel1Layout.createSequentialGroup()
                                 .addGroup(jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                                    .addComponent(btn_EmpRecords)
-                                    .addComponent(btn_MyRecords, javax.swing.GroupLayout.PREFERRED_SIZE, 132, javax.swing.GroupLayout.PREFERRED_SIZE)
-                                    .addComponent(btn_Logout, javax.swing.GroupLayout.PREFERRED_SIZE, 132, javax.swing.GroupLayout.PREFERRED_SIZE))
+                                    .addComponent(btn_EmpRecords, javax.swing.GroupLayout.PREFERRED_SIZE, 170, javax.swing.GroupLayout.PREFERRED_SIZE)
+                                    .addComponent(btn_MyRecords, javax.swing.GroupLayout.PREFERRED_SIZE, 170, javax.swing.GroupLayout.PREFERRED_SIZE)
+                                    .addComponent(btn_Logout, javax.swing.GroupLayout.PREFERRED_SIZE, 170, javax.swing.GroupLayout.PREFERRED_SIZE))
                                 .addGap(31, 31, 31))
                             .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, jPanel1Layout.createSequentialGroup()
                                 .addComponent(jLabel3)
@@ -466,11 +556,11 @@ public class frm_EmpAttLeave extends javax.swing.JFrame {
                 .addGroup(jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING, false)
                     .addGroup(jPanel1Layout.createSequentialGroup()
                         .addComponent(btn_Profile, javax.swing.GroupLayout.PREFERRED_SIZE, 185, javax.swing.GroupLayout.PREFERRED_SIZE)
-                        .addGap(43, 43, 43)
+                        .addGap(55, 55, 55)
                         .addComponent(btn_LeaveMgt, javax.swing.GroupLayout.PREFERRED_SIZE, 185, javax.swing.GroupLayout.PREFERRED_SIZE)
-                        .addGap(38, 38, 38)
+                        .addGap(42, 42, 42)
                         .addComponent(btn_SalaryAndStatutory, javax.swing.GroupLayout.PREFERRED_SIZE, 185, javax.swing.GroupLayout.PREFERRED_SIZE)
-                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                        .addGap(45, 45, 45)
                         .addComponent(btn_PayrollSummary, javax.swing.GroupLayout.PREFERRED_SIZE, 185, javax.swing.GroupLayout.PREFERRED_SIZE))
                     .addComponent(jPanel2, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
                 .addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
@@ -749,4 +839,267 @@ public class frm_EmpAttLeave extends javax.swing.JFrame {
     private javax.swing.JTextField txt_vlCount;
     private javax.swing.JTextField txt_vlUsed;
     // End of variables declaration//GEN-END:variables
+    
+    private void applyModernStyling() {
+        // Style the main container to match Profile page layout
+        jPanel1.setLayout(new java.awt.BorderLayout());
+        jPanel1.setBackground(new Color(249, 250, 251));
+        jPanel1.setBorder(javax.swing.BorderFactory.createEmptyBorder(15, 15, 15, 15));
+        
+        // Main content area styling
+        jPanel2.setBackground(new Color(255, 255, 255));
+        jPanel2.setBorder(javax.swing.BorderFactory.createCompoundBorder(
+            javax.swing.BorderFactory.createLineBorder(new Color(229, 231, 235), 1),
+            javax.swing.BorderFactory.createEmptyBorder(20, 25, 20, 25)
+        ));
+        
+        // Ensure navigation panel has proper styling
+        jPanel3.setBackground(new Color(255, 255, 255));
+        jPanel3.setBorder(javax.swing.BorderFactory.createEmptyBorder(10, 15, 10, 15));
+        
+        // Style sidebar container with proper background and layout
+        if (jPanel4 != null) {
+            jPanel4.setBackground(new Color(255, 255, 255));
+            jPanel4.setBorder(javax.swing.BorderFactory.createEmptyBorder(20, 15, 20, 15));
+        }
+        if (jPanel5 != null) {
+            jPanel5.setBackground(new Color(255, 255, 255));
+        }
+        if (jPanel6 != null) {
+            jPanel6.setBackground(new Color(255, 255, 255));
+        }
+        
+        // Hide MotorPH logo and version text to match profile page
+        if (jLabel2 != null) {
+            jLabel2.setVisible(false); // MotorPH logo
+        }
+        if (jLabel5 != null) {
+            jLabel5.setVisible(false); // Version text
+        }
+        
+        // Style text fields with enhanced modern borders
+        styleTextFieldEnhanced(txt_vlCount);
+        styleTextFieldEnhanced(txt_vlUsed);
+        styleTextFieldEnhanced(txt_vlBal);
+        styleTextFieldEnhanced(txt_slCount);
+        styleTextFieldEnhanced(txt_slUsed);
+        styleTextFieldEnhanced(txt_slBal);
+        
+        // Style labels with enhanced modern typography
+        styleLabelEnhanced(jLabel6, false);
+        styleLabelEnhanced(jLabel7, false);
+        styleLabelEnhanced(jLabel8, false);
+        styleLabelEnhanced(jLabel9, false);
+        styleLabelEnhanced(jLabel10, false);
+        styleLabelEnhanced(jLabel11, false);
+        
+        // Style attendance table
+        styleTableEnhanced();
+        
+        // Style action buttons
+        styleActionButtonEnhanced(btn_LeaveRequest, new Color(59, 130, 246));
+        styleActionButtonEnhanced(btn_LeaveApproval, new Color(59, 130, 246));
+        
+        // Style navigation buttons with enhanced modern design and better spacing
+        styleNavigationButtonEnhanced(btn_Profile, new Color(107, 114, 128), false);
+        styleNavigationButtonEnhanced(btn_LeaveMgt, new Color(34, 197, 94), true); // Active green for attendance
+        styleNavigationButtonEnhanced(btn_SalaryAndStatutory, new Color(107, 114, 128), false);
+        styleNavigationButtonEnhanced(btn_PayrollSummary, new Color(107, 114, 128), false);
+        
+        // Style left sidebar buttons to match Profile page exactly
+        styleSidebarButtonEnhanced(btn_MyRecords, new Color(107, 114, 128), false);
+        styleSidebarButtonEnhanced(btn_EmpRecords, new Color(107, 114, 128), false);
+        styleSidebarButtonEnhanced(btn_Logout, new Color(239, 68, 68), false); // Red for logout
+    }
+    
+    private void styleTextFieldEnhanced(javax.swing.JTextField field) {
+        field.setFont(new Font("Segoe UI", Font.PLAIN, 14));
+        field.setBackground(new Color(249, 250, 251));
+        field.setBorder(javax.swing.BorderFactory.createCompoundBorder(
+            javax.swing.BorderFactory.createCompoundBorder(
+                javax.swing.BorderFactory.createEmptyBorder(1, 1, 2, 2),
+                javax.swing.BorderFactory.createLineBorder(new Color(0, 0, 0, 6), 1)
+            ),
+            javax.swing.BorderFactory.createCompoundBorder(
+                javax.swing.BorderFactory.createLineBorder(new Color(209, 213, 219), 1),
+                javax.swing.BorderFactory.createEmptyBorder(10, 16, 10, 16)
+            )
+        ));
+        field.setForeground(new Color(55, 65, 81));
+    }
+    
+    private void styleLabelEnhanced(javax.swing.JLabel label, boolean isTitle) {
+        if (isTitle) {
+            label.setFont(new Font("Segoe UI", Font.BOLD, 22));
+            label.setForeground(new Color(17, 24, 39));
+        } else {
+            label.setFont(new Font("Segoe UI", Font.BOLD, 14));
+            label.setForeground(new Color(75, 85, 99));
+            label.setBorder(javax.swing.BorderFactory.createEmptyBorder(0, 0, 4, 0));
+            // Add right alignment for consistent label positioning
+            label.setHorizontalAlignment(javax.swing.SwingConstants.RIGHT);
+        }
+    }
+    
+    private void styleTableEnhanced() {
+        // Style the table with modern appearance to match profile page
+        tbl_Attendance.setFont(new Font("Segoe UI", Font.PLAIN, 13));
+        tbl_Attendance.setRowHeight(38);
+        tbl_Attendance.setGridColor(new Color(229, 231, 235));
+        tbl_Attendance.setSelectionBackground(new Color(219, 234, 254));
+        tbl_Attendance.setSelectionForeground(new Color(30, 64, 175));
+        tbl_Attendance.setBackground(new Color(255, 255, 255));
+        tbl_Attendance.getTableHeader().setFont(new Font("Segoe UI", Font.BOLD, 13));
+        tbl_Attendance.getTableHeader().setBackground(new Color(249, 250, 251));
+        tbl_Attendance.getTableHeader().setForeground(new Color(55, 65, 81));
+        tbl_Attendance.getTableHeader().setBorder(javax.swing.BorderFactory.createMatteBorder(0, 0, 1, 0, new Color(209, 213, 219)));
+        tbl_Attendance.getTableHeader().setPreferredSize(new java.awt.Dimension(0, 40));
+        
+        // Style the scroll pane to match profile page
+        jScrollPane1.setBorder(javax.swing.BorderFactory.createCompoundBorder(
+            javax.swing.BorderFactory.createCompoundBorder(
+                javax.swing.BorderFactory.createEmptyBorder(2, 2, 4, 4),
+                javax.swing.BorderFactory.createLineBorder(new Color(0, 0, 0, 8), 1)
+            ),
+            javax.swing.BorderFactory.createCompoundBorder(
+                javax.swing.BorderFactory.createLineBorder(new Color(229, 231, 235), 1),
+                javax.swing.BorderFactory.createEmptyBorder(2, 2, 2, 2)
+            )
+        ));
+        jScrollPane1.setBackground(new Color(255, 255, 255));
+        jScrollPane1.getViewport().setBackground(new Color(255, 255, 255));
+    }
+    
+    private void styleActionButtonEnhanced(javax.swing.JButton button, Color backgroundColor) {
+        button.setFont(new Font("Segoe UI", Font.BOLD, 13));
+        button.setBackground(backgroundColor);
+        button.setForeground(new Color(255, 255, 255));
+        button.setCursor(new Cursor(Cursor.HAND_CURSOR));
+        button.setFocusPainted(false);
+        button.setBorderPainted(false);
+        
+        // Make buttons larger to match profile page styling
+        button.setPreferredSize(new java.awt.Dimension(150, 45));
+        button.setMinimumSize(new java.awt.Dimension(150, 45));
+        
+        button.setBorder(javax.swing.BorderFactory.createCompoundBorder(
+            javax.swing.BorderFactory.createCompoundBorder(
+                javax.swing.BorderFactory.createEmptyBorder(2, 2, 4, 4),
+                javax.swing.BorderFactory.createLineBorder(new Color(0, 0, 0, 8), 1)
+            ),
+            javax.swing.BorderFactory.createCompoundBorder(
+                javax.swing.BorderFactory.createLineBorder(backgroundColor.darker(), 1),
+                javax.swing.BorderFactory.createEmptyBorder(10, 18, 10, 18)
+            )
+        ));
+    }
+    
+    private void styleNavigationButtonEnhanced(javax.swing.JButton button, Color backgroundColor, boolean isActive) {
+        button.setFont(new Font("Segoe UI", Font.BOLD, 12));
+        button.setBackground(backgroundColor);
+        button.setForeground(new Color(255, 255, 255));
+        button.setCursor(new Cursor(Cursor.HAND_CURSOR));
+        button.setFocusPainted(false);
+        button.setBorderPainted(false);
+        
+        // Set consistent preferred size for all navigation buttons - wider for better text display
+        button.setPreferredSize(new java.awt.Dimension(200, 45));
+        button.setMinimumSize(new java.awt.Dimension(200, 45));
+        button.setMaximumSize(new java.awt.Dimension(200, 45));
+        
+        // Ensure text is centered and properly aligned
+        button.setHorizontalAlignment(javax.swing.SwingConstants.CENTER);
+        button.setVerticalAlignment(javax.swing.SwingConstants.CENTER);
+        
+        if (isActive) {
+            // Active button with enhanced border highlight and shadow
+            button.setBorder(javax.swing.BorderFactory.createCompoundBorder(
+                javax.swing.BorderFactory.createCompoundBorder(
+                    javax.swing.BorderFactory.createEmptyBorder(1, 1, 3, 3),
+                    javax.swing.BorderFactory.createLineBorder(new Color(34, 197, 94, 40), 1)
+                ),
+                javax.swing.BorderFactory.createCompoundBorder(
+                    javax.swing.BorderFactory.createLineBorder(new Color(34, 197, 94), 2),
+                    javax.swing.BorderFactory.createEmptyBorder(10, 16, 10, 16)
+                )
+            ));
+        } else {
+            // Regular button with subtle shadow and generous padding
+            button.setBorder(javax.swing.BorderFactory.createCompoundBorder(
+                javax.swing.BorderFactory.createEmptyBorder(1, 1, 3, 3),
+                javax.swing.BorderFactory.createCompoundBorder(
+                    javax.swing.BorderFactory.createLineBorder(new Color(0, 0, 0, 8), 1),
+                    javax.swing.BorderFactory.createEmptyBorder(12, 18, 12, 18)
+                )
+            ));
+        }
+    }
+    
+    private void styleSidebarButtonEnhanced(javax.swing.JButton button, Color backgroundColor, boolean isActive) {
+        button.setFont(new Font("Segoe UI", Font.BOLD, 13)); // Match Profile page font exactly
+        button.setBackground(backgroundColor);
+        button.setForeground(new Color(255, 255, 255));
+        button.setCursor(new Cursor(Cursor.HAND_CURSOR));
+        button.setFocusPainted(false);
+        button.setBorderPainted(false);
+        
+        // Force exact uniform size for ALL sidebar buttons - exactly like Profile page
+        button.setPreferredSize(new java.awt.Dimension(170, 45));
+        button.setMinimumSize(new java.awt.Dimension(170, 45));
+        button.setMaximumSize(new java.awt.Dimension(170, 45));
+        button.setSize(170, 45);
+        
+        // Perfect alignment and spacing for sidebar buttons - exactly like Profile page
+        button.setHorizontalAlignment(javax.swing.SwingConstants.CENTER);
+        button.setVerticalAlignment(javax.swing.SwingConstants.CENTER);
+        button.setHorizontalTextPosition(javax.swing.SwingConstants.CENTER);
+        button.setVerticalTextPosition(javax.swing.SwingConstants.CENTER);
+        button.setMargin(new java.awt.Insets(0, 0, 0, 0));
+        
+        // Clean, uniform styling for all sidebar buttons - exactly matching Profile page
+        button.setBorder(javax.swing.BorderFactory.createCompoundBorder(
+            javax.swing.BorderFactory.createCompoundBorder(
+                javax.swing.BorderFactory.createEmptyBorder(2, 2, 4, 4),
+                javax.swing.BorderFactory.createLineBorder(new Color(0, 0, 0, 8), 1)
+            ),
+            javax.swing.BorderFactory.createCompoundBorder(
+                javax.swing.BorderFactory.createLineBorder(new Color(156, 163, 175), 1),
+                javax.swing.BorderFactory.createEmptyBorder(10, 12, 10, 12)
+            )
+        ));
+    }
+    
+    private void addHoverEffects() {
+        addButtonHoverEnhanced(btn_Profile, new Color(107, 114, 128), new Color(75, 85, 99));
+        addButtonHoverEnhanced(btn_LeaveMgt, new Color(34, 197, 94), new Color(22, 163, 74));
+        addButtonHoverEnhanced(btn_SalaryAndStatutory, new Color(107, 114, 128), new Color(75, 85, 99));
+        addButtonHoverEnhanced(btn_PayrollSummary, new Color(107, 114, 128), new Color(75, 85, 99));
+        
+        // Add hover effects for sidebar buttons
+        addButtonHoverEnhanced(btn_MyRecords, new Color(107, 114, 128), new Color(75, 85, 99));
+        addButtonHoverEnhanced(btn_EmpRecords, new Color(107, 114, 128), new Color(75, 85, 99));
+        addButtonHoverEnhanced(btn_Logout, new Color(239, 68, 68), new Color(220, 38, 38));
+        
+        // Add hover effects for action buttons
+        addButtonHoverEnhanced(btn_LeaveRequest, new Color(59, 130, 246), new Color(37, 99, 235));
+        addButtonHoverEnhanced(btn_LeaveApproval, new Color(59, 130, 246), new Color(37, 99, 235));
+    }
+    
+    private void addButtonHoverEnhanced(javax.swing.JButton button, Color normalColor, Color hoverColor) {
+        button.addMouseListener(new java.awt.event.MouseAdapter() {
+            @Override
+            public void mouseEntered(java.awt.event.MouseEvent evt) {
+                if (button.isEnabled()) {
+                    button.setBackground(hoverColor);
+                }
+            }
+            
+            @Override
+            public void mouseExited(java.awt.event.MouseEvent evt) {
+                if (button.isEnabled()) {
+                    button.setBackground(normalColor);
+                }
+            }
+        });
+    }
 }
