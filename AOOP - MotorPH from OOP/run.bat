@@ -1,0 +1,4 @@
+@echo off
+cd /d "%~dp0"
+java -cp "build/classes;lib/jcalendar-1.4.jar;lib/mysql-connector-j-8.0.33.jar" oop_motorph.OOP_MotorPH
+pause

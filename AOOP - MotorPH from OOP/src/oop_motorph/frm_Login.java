@@ -1,6 +1,7 @@
-
 package oop_motorph;
 
+import java.awt.*;
+import java.awt.geom.RoundRectangle2D;
 import java.nio.charset.StandardCharsets;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
@@ -22,7 +23,102 @@ public class frm_Login extends javax.swing.JFrame {
         setResizable(false);
         setTitle("Welcome to MotorPH");
 
+        // Enhanced styling for better visual appearance
+        addHoverEffects();
+        addFocusEffects();
+        
         credentials = CSVHandler.loadCredentials();
+    }
+    
+    private void addModernStyling() {
+        // Add modern styling to components
+        
+        // Make input fields more modern with rounded corners
+        createRoundedTextField(txt_Login);
+        createRoundedTextField(jPasswordField);
+        createRoundedButton(btn_Login);
+        
+        // Add subtle shadow effect to the main panel
+        jPanel1.setBorder(javax.swing.BorderFactory.createCompoundBorder(
+            javax.swing.BorderFactory.createEmptyBorder(0, 0, 4, 4),
+            javax.swing.BorderFactory.createCompoundBorder(
+                javax.swing.BorderFactory.createLineBorder(new java.awt.Color(200, 200, 200), 1),
+                javax.swing.BorderFactory.createEmptyBorder(20, 20, 20, 20)
+            )
+        ));
+    }
+    
+    private void createRoundedTextField(javax.swing.JComponent field) {
+        field.setOpaque(false);
+        field.setBorder(javax.swing.BorderFactory.createCompoundBorder(
+            javax.swing.BorderFactory.createEmptyBorder(2, 2, 2, 2),
+            javax.swing.BorderFactory.createCompoundBorder(
+                javax.swing.BorderFactory.createLineBorder(new java.awt.Color(220, 220, 220), 1, true),
+                javax.swing.BorderFactory.createEmptyBorder(12, 16, 12, 16)
+            )
+        ));
+    }
+    
+    private void createRoundedButton(javax.swing.JButton button) {
+        button.setOpaque(true);
+        button.setContentAreaFilled(true);
+        button.setBorderPainted(false);
+        button.setFocusPainted(false);
+        button.setBorder(javax.swing.BorderFactory.createEmptyBorder(14, 28, 14, 28));
+    }
+    
+    private void addHoverEffects() {
+        // Add hover effect to login button
+        btn_Login.addMouseListener(new java.awt.event.MouseAdapter() {
+            @Override
+            public void mouseEntered(java.awt.event.MouseEvent evt) {
+                btn_Login.setBackground(new java.awt.Color(22, 163, 74));
+            }
+            
+            @Override
+            public void mouseExited(java.awt.event.MouseEvent evt) {
+                btn_Login.setBackground(new java.awt.Color(34, 197, 94));
+            }
+        });
+    }
+    
+    private void addFocusEffects() {
+        // Add focus effects to text fields
+        txt_Login.addFocusListener(new java.awt.event.FocusAdapter() {
+            @Override
+            public void focusGained(java.awt.event.FocusEvent evt) {
+                txt_Login.setBorder(javax.swing.BorderFactory.createCompoundBorder(
+                    javax.swing.BorderFactory.createLineBorder(new java.awt.Color(34, 197, 94), 2),
+                    javax.swing.BorderFactory.createEmptyBorder(11, 15, 11, 15)
+                ));
+            }
+            
+            @Override
+            public void focusLost(java.awt.event.FocusEvent evt) {
+                txt_Login.setBorder(javax.swing.BorderFactory.createCompoundBorder(
+                    javax.swing.BorderFactory.createLineBorder(new java.awt.Color(200, 200, 200), 1),
+                    javax.swing.BorderFactory.createEmptyBorder(12, 16, 12, 16)
+                ));
+            }
+        });
+        
+        jPasswordField.addFocusListener(new java.awt.event.FocusAdapter() {
+            @Override
+            public void focusGained(java.awt.event.FocusEvent evt) {
+                jPasswordField.setBorder(javax.swing.BorderFactory.createCompoundBorder(
+                    javax.swing.BorderFactory.createLineBorder(new java.awt.Color(34, 197, 94), 2),
+                    javax.swing.BorderFactory.createEmptyBorder(11, 15, 11, 15)
+                ));
+            }
+            
+            @Override
+            public void focusLost(java.awt.event.FocusEvent evt) {
+                jPasswordField.setBorder(javax.swing.BorderFactory.createCompoundBorder(
+                    javax.swing.BorderFactory.createLineBorder(new java.awt.Color(200, 200, 200), 1),
+                    javax.swing.BorderFactory.createEmptyBorder(12, 16, 12, 16)
+                ));
+            }
+        });
     }
 
     /**
@@ -50,16 +146,25 @@ public class frm_Login extends javax.swing.JFrame {
 
         jPanel1.setBackground(new java.awt.Color(255, 255, 255));
 
+        txt_Login.setBackground(new java.awt.Color(255, 255, 255));
+        txt_Login.setFont(new java.awt.Font("Segoe UI", 0, 14)); // NOI18N
+        txt_Login.setBorder(javax.swing.BorderFactory.createCompoundBorder(
+            javax.swing.BorderFactory.createLineBorder(new java.awt.Color(200, 200, 200), 1),
+            javax.swing.BorderFactory.createEmptyBorder(12, 16, 12, 16)
+        ));
         txt_Login.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
                 txt_LoginActionPerformed(evt);
             }
         });
 
-        btn_Login.setBackground(new java.awt.Color(51, 51, 255));
-        btn_Login.setFont(new java.awt.Font("Segoe UI", 1, 12)); // NOI18N
+        btn_Login.setBackground(new java.awt.Color(34, 197, 94));
+        btn_Login.setFont(new java.awt.Font("Segoe UI", 1, 14)); // NOI18N
         btn_Login.setForeground(new java.awt.Color(255, 255, 255));
         btn_Login.setText("LOGIN");
+        btn_Login.setBorder(javax.swing.BorderFactory.createEmptyBorder(16, 32, 16, 32));
+        btn_Login.setCursor(new java.awt.Cursor(java.awt.Cursor.HAND_CURSOR));
+        btn_Login.setFocusPainted(false);
         btn_Login.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
                 btn_LoginActionPerformed(evt);
@@ -69,18 +174,27 @@ public class frm_Login extends javax.swing.JFrame {
         jLabel2.setIcon(new javax.swing.ImageIcon(getClass().getResource("/oop_motorph/img/img_Login.png"))); // NOI18N
         jLabel2.setText("jLabel2");
 
-        jLabel1.setFont(new java.awt.Font("Arial Rounded MT Bold", 1, 36)); // NOI18N
+        jLabel1.setFont(new java.awt.Font("Arial Rounded MT Bold", 1, 48)); // NOI18N
+        jLabel1.setForeground(new java.awt.Color(17, 24, 39));
         jLabel1.setText("MotorPH");
 
-        jLabel3.setFont(new java.awt.Font("Segoe UI", 0, 8)); // NOI18N
+        jLabel3.setFont(new java.awt.Font("Segoe UI", 0, 12)); // NOI18N
+        jLabel3.setForeground(new java.awt.Color(107, 114, 128));
         jLabel3.setText("Red Dragon Technologies Inc.");
 
+        jLabel4.setFont(new java.awt.Font("Segoe UI", 1, 14)); // NOI18N
+        jLabel4.setForeground(new java.awt.Color(55, 65, 81));
         jLabel4.setText("Username:");
 
+        jLabel5.setFont(new java.awt.Font("Segoe UI", 1, 14)); // NOI18N
+        jLabel5.setForeground(new java.awt.Color(55, 65, 81));
         jLabel5.setText("Password:");
 
         jCheckBox1.setBackground(new java.awt.Color(255, 255, 255));
+        jCheckBox1.setFont(new java.awt.Font("Segoe UI", 0, 12)); // NOI18N
+        jCheckBox1.setForeground(new java.awt.Color(107, 114, 128));
         jCheckBox1.setText("Show Password");
+        jCheckBox1.setCursor(new java.awt.Cursor(java.awt.Cursor.HAND_CURSOR));
         jCheckBox1.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
                 jCheckBox1ActionPerformed(evt);
@@ -89,6 +203,12 @@ public class frm_Login extends javax.swing.JFrame {
 
         jLabel6.setIcon(new javax.swing.ImageIcon(getClass().getResource("/oop_motorph/img/img_Logo_XS.png"))); // NOI18N
 
+        jPasswordField.setBackground(new java.awt.Color(255, 255, 255));
+        jPasswordField.setFont(new java.awt.Font("Segoe UI", 0, 14)); // NOI18N
+        jPasswordField.setBorder(javax.swing.BorderFactory.createCompoundBorder(
+            javax.swing.BorderFactory.createLineBorder(new java.awt.Color(200, 200, 200), 1),
+            javax.swing.BorderFactory.createEmptyBorder(12, 16, 12, 16)
+        ));
         jPasswordField.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
                 jPasswordFieldActionPerformed(evt);
@@ -103,32 +223,28 @@ public class frm_Login extends javax.swing.JFrame {
                         .addGroup(jPanel1Layout.createSequentialGroup()
                                 .addGroup(jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
                                         .addGroup(jPanel1Layout.createSequentialGroup()
-                                                .addGap(141, 141, 141)
-                                                .addComponent(jCheckBox1, javax.swing.GroupLayout.PREFERRED_SIZE, 185, javax.swing.GroupLayout.PREFERRED_SIZE))
+                                                .addGap(120, 120, 120)
+                                                .addComponent(jCheckBox1, javax.swing.GroupLayout.PREFERRED_SIZE, 140, javax.swing.GroupLayout.PREFERRED_SIZE))
                                         .addGroup(jPanel1Layout.createSequentialGroup()
-                                                .addGap(50, 50, 50)
+                                                .addGap(40, 40, 40)
                                                 .addGroup(jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
                                                         .addComponent(jLabel3)
                                                         .addGroup(jPanel1Layout.createSequentialGroup()
-                                                                .addGroup(jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING, false)
-                                                                        .addComponent(jLabel4, javax.swing.GroupLayout.DEFAULT_SIZE, 61, Short.MAX_VALUE)
-                                                                        .addComponent(jLabel5, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
                                                                 .addGroup(jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                                                                        .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, jPanel1Layout.createSequentialGroup()
-                                                                                .addGap(19, 19, 19)
-                                                                                .addComponent(txt_Login, javax.swing.GroupLayout.PREFERRED_SIZE, 185, javax.swing.GroupLayout.PREFERRED_SIZE))
-                                                                        .addGroup(jPanel1Layout.createSequentialGroup()
-                                                                                .addGap(18, 18, 18)
-                                                                                .addGroup(jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                                                                                        .addComponent(btn_Login, javax.swing.GroupLayout.PREFERRED_SIZE, 122, javax.swing.GroupLayout.PREFERRED_SIZE)
-                                                                                        .addComponent(jPasswordField, javax.swing.GroupLayout.Alignment.TRAILING, javax.swing.GroupLayout.PREFERRED_SIZE, 186, javax.swing.GroupLayout.PREFERRED_SIZE))))))))
-                                .addGap(0, 0, Short.MAX_VALUE))
+                                                                        .addComponent(jLabel4)
+                                                                        .addComponent(jLabel5))
+                                                                .addGap(18, 18, 18)
+                                                                .addGroup(jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING, false)
+                                                                        .addComponent(txt_Login, javax.swing.GroupLayout.DEFAULT_SIZE, 250, Short.MAX_VALUE)
+                                                                        .addComponent(jPasswordField, javax.swing.GroupLayout.DEFAULT_SIZE, 250, Short.MAX_VALUE)
+                                                                        .addComponent(btn_Login, javax.swing.GroupLayout.DEFAULT_SIZE, 250, Short.MAX_VALUE))))))
+                                .addContainerGap(40, Short.MAX_VALUE))
                         .addGroup(jPanel1Layout.createSequentialGroup()
-                                .addGap(24, 24, 24)
+                                .addGap(40, 40, 40)
                                 .addComponent(jLabel1)
                                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                                .addComponent(jLabel6, javax.swing.GroupLayout.PREFERRED_SIZE, 151, javax.swing.GroupLayout.PREFERRED_SIZE)
-                                .addContainerGap(20, Short.MAX_VALUE))
+                                .addComponent(jLabel6, javax.swing.GroupLayout.PREFERRED_SIZE, 120, javax.swing.GroupLayout.PREFERRED_SIZE)
+                                .addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
         );
         jPanel1Layout.setVerticalGroup(
                 jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
