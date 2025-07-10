@@ -16,10 +16,19 @@ public class frm_EmployeesRecords2 extends javax.swing.JFrame {
         this.empDetails = empDetails;
         this.isEditMode = isEditMode;
         populateFields();
-        setFieldsEditable(empDetails == null || isEditMode);  
+        setFieldsEditable(empDetails == null || isEditMode);
+        
         setLocationRelativeTo(null);
         setResizable(false);
-        setTitle(isEditMode ? "Edit Employee" : "Add Employee");
+        
+        // Set appropriate title based on mode
+        if (empDetails == null) {
+            setTitle("Add Employee");
+        } else if (isEditMode) {
+            setTitle("Edit Employee");
+        } else {
+            setTitle("View Employee");
+        }
     }
 
     private void populateFields() {
@@ -37,7 +46,11 @@ public class frm_EmployeesRecords2 extends javax.swing.JFrame {
     } else {
         // Clear fields for Add mode
         existingEmpID = null;
-        txt_empID.setText("");
+        
+        // Auto-generate the next employee ID
+        int nextId = DatabaseHandler.getNextEmployeeId();
+        txt_empID.setText(String.valueOf(nextId));
+        
         txt_firstName.setText("");
         txt_lastName.setText("");
         txt_birthdate.setText("");
@@ -53,8 +66,8 @@ public class frm_EmployeesRecords2 extends javax.swing.JFrame {
     }
     
     private void setFieldsEditable(boolean editable) {
-        // Enable or disable text fields and combo boxes for editing
-        txt_empID.setEditable(editable);  
+        // Employee ID is never editable (primary key - auto-generated in add mode, immutable in edit mode)
+        txt_empID.setEditable(false);
         txt_firstName.setEditable(editable);
         txt_lastName.setEditable(editable);
         txt_birthdate.setEditable(editable);
@@ -131,7 +144,7 @@ public class frm_EmployeesRecords2 extends javax.swing.JFrame {
         jLabel9.setText("Last Name:");
 
         jLabel6.setFont(new java.awt.Font("Segoe UI", 1, 12)); // NOI18N
-        jLabel6.setText("Birthdate  (DD-MMM-YY):");
+        jLabel6.setText("Birthdate  (YYYY-MM-DD):");
 
         jLabel10.setFont(new java.awt.Font("Segoe UI", 1, 12)); // NOI18N
         jLabel10.setText("Address:");
@@ -396,18 +409,16 @@ public class frm_EmployeesRecords2 extends javax.swing.JFrame {
         JOptionPane.showMessageDialog(this, "First name and last name cannot contain commas.", "Invalid Input", JOptionPane.ERROR_MESSAGE);
         return;
     }
-     
     
-// String birthdate = txt_birthdate.getText().trim();
+    // Get birthdate and validate YYYY-MM-DD format
     String birthdate = txt_birthdate.getText().trim();
-    birthdate = CSVHandler.formatBirthdate(birthdate);
-
-    if (birthdate == null) {
-    JOptionPane.showMessageDialog(this, "Invalid birthdate format! Use DD-MMM-YY (e.g., 10-Oct-90).", "Error", JOptionPane.ERROR_MESSAGE);
-    return;
+    
+    // Validate YYYY-MM-DD format
+    if (!birthdate.matches("\\d{4}-\\d{2}-\\d{2}")) {
+        JOptionPane.showMessageDialog(this, "Invalid birthdate format! Use YYYY-MM-DD (e.g., 2002-03-10).", "Error", JOptionPane.ERROR_MESSAGE);
+        return;
     }
-
-  //Save the correctly formatted birthdate (e.g., "10-OCT-23" → "10-Oct-23")
+    
     System.out.println("Formatted Birthdate: " + birthdate);
     String address = CSVHandler.validateAddress(txt_address.getText().trim());
 
@@ -448,15 +459,7 @@ public class frm_EmployeesRecords2 extends javax.swing.JFrame {
         return;
     }
 
-    // Validate Birthdate: Must be in format "DD-MMM-YY"
-    String birthdatePattern = "^\\d{2}-(JAN|FEB|MAR|APR|MAY|JUN|JUL|AUG|SEP|OCT|NOV|DEC)-\\d{2}$";
-    Pattern pattern = Pattern.compile(birthdatePattern, Pattern.CASE_INSENSITIVE);
-    Matcher matcher = pattern.matcher(birthdate);
-
-    if (!matcher.matches()) {
-        JOptionPane.showMessageDialog(this, "Birthdate must be in format DD-MMM-YY (e.g., 12-JUN-24).", "Invalid Birthdate", JOptionPane.ERROR_MESSAGE);
-        return;
-    }
+    // Additional validation is done above for YYYY-MM-DD format
     
 
     EmpDetails updatedEmp = new EmpDetails(empID, firstName, lastName, birthdate, address, phoneNo, empStatus, position, immSupervisor);
@@ -489,8 +492,9 @@ public class frm_EmployeesRecords2 extends javax.swing.JFrame {
     }//GEN-LAST:event_cbox_empStatusActionPerformed
 
     private void btn_EditEmpActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btn_EditEmpActionPerformed
-        setFieldsEditable(true);
         isEditMode = true;
+        setFieldsEditable(true);
+        setTitle("Edit Employee");
     }//GEN-LAST:event_btn_EditEmpActionPerformed
  
     /**
