@@ -1682,90 +1682,88 @@ public class frm_EmployeesPayrollProcess extends javax.swing.JFrame {
     // End of variables declaration//GEN-END:variables
 
     private void saveToPDF(String htmlContent) {
-        javax.swing.JFileChooser fileChooser = new javax.swing.JFileChooser();
-        fileChooser.setDialogTitle("Save Payroll Summary as PDF");
-        fileChooser.setSelectedFile(new java.io.File("PayrollSummary_" + new java.text.SimpleDateFormat("yyyyMMdd_HHmmss").format(new java.util.Date()) + ".pdf"));
-        fileChooser.setFileFilter(new javax.swing.filechooser.FileNameExtensionFilter("PDF files", "pdf"));
-        
-        if (fileChooser.showSaveDialog(this) == javax.swing.JFileChooser.APPROVE_OPTION) {
-            java.io.File file = fileChooser.getSelectedFile();
-            if (!file.getName().toLowerCase().endsWith(".pdf")) {
-                file = new java.io.File(file.getAbsolutePath() + ".pdf");
+        try {
+            // Create a temporary HTML file to open in browser for PDF export
+            java.io.File tempHtml = java.io.File.createTempFile("payroll_report_", ".html");
+            
+            // Write the HTML content with enhanced print-optimized CSS for exact browser matching
+            String printOptimizedHTML = htmlContent
+                // Ensure print styles apply to screen as well for perfect consistency
+                .replace("@media print {", "@media screen, print {");
+            
+            try (java.io.FileWriter writer = new java.io.FileWriter(tempHtml)) {
+                writer.write(printOptimizedHTML);
             }
             
-            try {
-                // Create a temporary HTML file to convert to PDF
-                java.io.File tempHtml = java.io.File.createTempFile("payroll_report", ".html");
+            // Use Java's Desktop API to open the HTML in browser for PDF export
+            if (java.awt.Desktop.isDesktopSupported()) {
+                java.awt.Desktop desktop = java.awt.Desktop.getDesktop();
                 
-                // Write the HTML content with enhanced print-optimized CSS for exact browser matching
-                String printOptimizedHTML = htmlContent
-                    // Ensure print styles apply to screen as well for perfect consistency
-                    .replace("@media print {", "@media screen, print {");
+                // Open the HTML file in the default browser for printing/PDF saving
+                desktop.browse(tempHtml.toURI());
                 
-                try (java.io.FileWriter writer = new java.io.FileWriter(tempHtml)) {
-                    writer.write(printOptimizedHTML);
-                }
-                
-                // Use Java's Desktop API to open and print the HTML (which allows save as PDF)
-                if (java.awt.Desktop.isDesktopSupported()) {
-                    java.awt.Desktop desktop = java.awt.Desktop.getDesktop();
-                    
-                    // Open the HTML file in the default browser for printing/PDF saving
-                    desktop.browse(tempHtml.toURI());
-                    
-                    // Show detailed instructions for perfect PDF export
-                    javax.swing.JOptionPane.showMessageDialog(this,
-                        "The report has been opened in your browser.\n\n" +
-                        "⚠️ CRITICAL: To prevent vertical/cramped layout:\n\n" +
-                        "1. Press Ctrl+P (or Cmd+P on Mac) to open print dialog\n" +
-                        "2. Select 'Save as PDF' or 'Microsoft Print to PDF' as destination\n" +
-                        "3. 🔴 MUST SET: Orientation to LANDSCAPE (not Portrait!)\n" +
-                        "4. Set these additional settings:\n" +
-                        "   • Paper size: A4 or Letter\n" +
-                        "   • Margins: None or Minimum (0.2in max)\n" +
-                        "   • Scale: 100% (Default - do not change)\n" +
-                        "   • Background graphics: ON (Enable colors)\n" +
-                        "5. Click 'Save' and choose your location\n\n" +
-                        "📋 The table MUST be in landscape mode to display properly!\n" +
-                        "If you see cramped vertical text, you forgot step 3!",
-                        "PDF Export - MUST USE LANDSCAPE!",
-                        javax.swing.JOptionPane.INFORMATION_MESSAGE);
-                        
-                    // Clean up temp file after delay
-                    java.util.Timer timer = new java.util.Timer();
-                    timer.schedule(new java.util.TimerTask() {
-                        @Override
-                        public void run() {
-                            try {
-                                tempHtml.delete();
-                            } catch (Exception e) {
-                                // Ignore cleanup errors
-                            }
-                            timer.cancel();
-                        }
-                    }, 10000); // Delete after 10 seconds
-                } else {
-                    // Fallback: save HTML file directly
-                    java.io.File htmlFile = new java.io.File(file.getAbsolutePath().replace(".pdf", ".html"));
-                    java.nio.file.Files.copy(tempHtml.toPath(), htmlFile.toPath(), 
-                        java.nio.file.StandardCopyOption.REPLACE_EXISTING);
-                    
-                    javax.swing.JOptionPane.showMessageDialog(this,
-                        "Report saved as HTML file: " + htmlFile.getAbsolutePath() + "\\n" +
-                        "You can open this file in a browser and save as PDF using Ctrl+P",
-                        "HTML Export Complete",
-                        javax.swing.JOptionPane.INFORMATION_MESSAGE);
-                        
-                    tempHtml.delete();
-                }
-                
-            } catch (Exception ex) {
+                // Show improved instructions that explain the single-step process
                 javax.swing.JOptionPane.showMessageDialog(this,
-                    "Error exporting PDF: " + ex.getMessage(),
-                    "Export Error",
-                    javax.swing.JOptionPane.ERROR_MESSAGE);
-                ex.printStackTrace();
+                    "✅ PAYROLL REPORT OPENED IN BROWSER\n\n" +
+                    "📋 TO SAVE AS PDF (ONE SIMPLE PROCESS):\n\n" +
+                    "1. Press Ctrl+P (or Cmd+P on Mac) in your browser\n" +
+                    "2. Choose 'Save as PDF' or 'Microsoft Print to PDF'\n" +
+                    "3. 🔴 IMPORTANT: Set Orientation to LANDSCAPE\n" +
+                    "4. Set these settings for best results:\n" +
+                    "   • Paper: A4 or Letter\n" +
+                    "   • Margins: None or Minimum\n" +
+                    "   • Background graphics: ON\n" +
+                    "5. Click 'Save' and choose your folder\n\n" +
+                    "⚠️ LANDSCAPE MODE IS REQUIRED!\n" +
+                    "Portrait mode will make the table cramped and unreadable.",
+                    "PDF Export Instructions",
+                    javax.swing.JOptionPane.INFORMATION_MESSAGE);
+                    
+                // Clean up temp file after delay
+                java.util.Timer timer = new java.util.Timer();
+                timer.schedule(new java.util.TimerTask() {
+                    @Override
+                    public void run() {
+                        try {
+                            tempHtml.delete();
+                        } catch (Exception e) {
+                            // Ignore cleanup errors
+                        }
+                        timer.cancel();
+                    }
+                }, 15000); // Delete after 15 seconds (more time for user to read)
+            } else {
+                // Fallback: save HTML file to desktop if desktop API not supported
+                String userHome = System.getProperty("user.home");
+                java.io.File desktopDir = new java.io.File(userHome, "Desktop");
+                if (!desktopDir.exists()) {
+                    desktopDir = new java.io.File(userHome); // Fallback to home directory
+                }
+                
+                String timestamp = new java.text.SimpleDateFormat("yyyyMMdd_HHmmss").format(new java.util.Date());
+                java.io.File htmlFile = new java.io.File(desktopDir, "PayrollReport_" + timestamp + ".html");
+                
+                java.nio.file.Files.copy(tempHtml.toPath(), htmlFile.toPath(), 
+                    java.nio.file.StandardCopyOption.REPLACE_EXISTING);
+                
+                javax.swing.JOptionPane.showMessageDialog(this,
+                    "📄 Report saved to: " + htmlFile.getAbsolutePath() + "\n\n" +
+                    "📋 To convert to PDF:\n" +
+                    "1. Open the HTML file in your browser\n" +
+                    "2. Press Ctrl+P and save as PDF\n" +
+                    "3. Use LANDSCAPE orientation for proper layout",
+                    "HTML Export Complete",
+                    javax.swing.JOptionPane.INFORMATION_MESSAGE);
+                    
+                tempHtml.delete();
             }
+            
+        } catch (Exception ex) {
+            javax.swing.JOptionPane.showMessageDialog(this,
+                "Error exporting report: " + ex.getMessage(),
+                "Export Error",
+                javax.swing.JOptionPane.ERROR_MESSAGE);
+            ex.printStackTrace();
         }
     }
 }
