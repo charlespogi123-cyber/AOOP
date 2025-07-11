@@ -5,21 +5,15 @@ import java.awt.print.PrinterException;
 import java.awt.print.PrinterJob;
 import java.io.*;
 import java.math.BigDecimal;
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
 import java.time.LocalDate;
 import java.time.LocalTime;
 import java.time.format.DateTimeFormatter;
 import java.util.*;
-import java.util.stream.Collectors;
-import java.io.BufferedReader;
-import java.io.FileReader;
-import java.io.IOException;
-import java.text.ParseException;
-import java.text.SimpleDateFormat;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+import java.util.stream.Collectors;
 import javax.swing.JFrame;
 import javax.swing.JOptionPane;
 import javax.swing.JTable;
@@ -182,111 +176,41 @@ public class CSVHandler {
     }
 
     public static void addEmployeeSalary(EmpSalaryDetails newEmpSalary) {
-        List<String[]> salaryData = readCSV(CSV_SalaryPath);
-
-        // Check if the employee already exists in the salary data
-        boolean employeeExists = false;
-        for (String[] row : salaryData) {
-            if (row[0].equals(newEmpSalary.getEmpID())) {
-                employeeExists = true;
-                break;
-            }
-        }
-
-        // If employee does not exist, add a new salary record
-        if (!employeeExists) {
-            String[] newSalary = new String[]{
-                    newEmpSalary.getEmpID(), newEmpSalary.getFirstName(), newEmpSalary.getLastName(),
-                    newEmpSalary.getSssNo(), newEmpSalary.getPhilhealthNo(), newEmpSalary.getTinNo(),
-                    newEmpSalary.getPagibigNo(), String.valueOf(newEmpSalary.getBasicSalary()),
-                    String.valueOf(newEmpSalary.getRiceSubsidy()), String.valueOf(newEmpSalary.getPhoneAllowance()),
-                    String.valueOf(newEmpSalary.getClothingAllowance()), String.valueOf(newEmpSalary.getGrossSemi()),
-                    String.valueOf(newEmpSalary.getHourlyRate())
-            };
-            salaryData.add(newSalary);
-            saveCSV(CSV_SalaryPath, salaryData);  // Save updated salary data to CSV
-        } else {
-            // Optionally, you could update the existing record instead of adding a duplicate
-            System.out.println("Employee salary already exists. Skipping addition.");
-        }
+        // Add new employee to the database with basic info and salary details
+        EmpDetails newEmployee = new EmpDetails(
+            newEmpSalary.getEmpID(), 
+            newEmpSalary.getFirstName(), 
+            newEmpSalary.getLastName(), 
+            "", // birthdate
+            "", // address
+            "", // phone
+            "Active", // default status
+            "General", // default position
+            "" // supervisor
+        );
+        
+        // Add the employee first (this will create basic employee, compensation, and government ID records)
+        DatabaseHandler.addEmployee(newEmployee);
+        
+        // Then update the salary details
+        DatabaseHandler.updateEmployeeSalary(newEmpSalary);
     }
 
     public static void updateEmployeeSalary(EmpSalaryDetails updatedSalary) {
-        List<String[]> salaryData = readCSV(CSV_SalaryPath);
-        for (int i = 0; i < salaryData.size(); i++) {
-            String[] row = salaryData.get(i);
-            if (row[0].equals(updatedSalary.getEmpID())) {
-                row[1] = updatedSalary.getFirstName();
-                row[2] = updatedSalary.getLastName();
-                row[3] = updatedSalary.getSssNo();
-                row[4] = updatedSalary.getPhilhealthNo();
-                row[5] = updatedSalary.getTinNo();
-                row[6] = updatedSalary.getPagibigNo();
-                row[7] = String.valueOf(updatedSalary.getBasicSalary());
-                row[8] = String.valueOf(updatedSalary.getRiceSubsidy());
-                row[9] = String.valueOf(updatedSalary.getPhoneAllowance());
-                row[10] = String.valueOf(updatedSalary.getClothingAllowance());
-                row[11] = String.valueOf(updatedSalary.getGrossSemi());
-                row[12] = String.valueOf(updatedSalary.getHourlyRate());
-                break;
-            }
-        }
-        saveCSV(CSV_SalaryPath, salaryData);
+        // Delegate to DatabaseHandler instead of using CSV
+        DatabaseHandler.updateEmployeeSalary(updatedSalary);
     }
 
-    // Add or Update employee details in the Employee, Attendance, and Salary files
+    // Add or Update employee details in the database instead of CSV files
     public static void addOrUpdateEmployeeInSalary(EmpDetails updatedEmp) {
-        // Update Employee file: Only update EmpID, FirstName, and LastName
-        List<String[]> employeeData = readCSV(CSV_EmployeesPath);
-
-        // Check if the employee exists and update their details (EmpID, FirstName, LastName)
-        boolean employeeUpdated = false;
-        for (String[] row : employeeData) {
-            if (row[0].equals(updatedEmp.getEmpID())) {
-                row[1] = updatedEmp.getFirstName();
-                row[2] = updatedEmp.getLastName();
-                employeeUpdated = true;
-                break;
-            }
+        // Check if employee exists
+        if (DatabaseHandler.employeeExists(updatedEmp.getEmpID(), null)) {
+            // Update existing employee
+            DatabaseHandler.updateEmployee(updatedEmp);
+        } else {
+            // Add new employee (this will also create compensation and government ID records)
+            DatabaseHandler.addEmployee(updatedEmp);
         }
-
-        // If employee does not exist, add a new record
-        if (!employeeUpdated) {
-            String[] newEmployee = new String[]{
-                    updatedEmp.getEmpID(), updatedEmp.getFirstName(), updatedEmp.getLastName(),
-                    updatedEmp.getBirthdate(), updatedEmp.getAddress(), updatedEmp.getPhoneNumber(),
-                    updatedEmp.getEmployeeStatus(), updatedEmp.getPosition(), updatedEmp.getImmediateSupervisor()
-            };
-            employeeData.add(newEmployee);
-        }
-
-        saveCSV(CSV_EmployeesPath, employeeData);
-
-        // Update Attendance file: Only update EmpID, FirstName, and LastName
-        List<String[]> attendanceData = readCSV(CSV_AttendancePath);
-        boolean attendanceUpdated = false;
-
-        // Check if the employee exists and update their details (EmpID, FirstName, LastName)
-        for (String[] row : attendanceData) {
-            if (row[0].equals(updatedEmp.getEmpID())) {
-                row[1] = updatedEmp.getFirstName();
-                row[2] = updatedEmp.getLastName();
-                attendanceUpdated = true;
-                break;
-            }
-        }
-
-        // If attendance record does not exist, add a new record
-        if (!attendanceUpdated) {
-            String[] newAttendance = new String[]{
-                    updatedEmp.getEmpID(), updatedEmp.getFirstName(), updatedEmp.getLastName(),
-                    "", "", "", "", "", "", "", "0", "0", "", "", "0", "0", "0", "0", "0", "0"
-            };
-            attendanceData.add(newAttendance);
-        }
-
-        saveCSV(CSV_AttendancePath, attendanceData);
-
     }
 
     public static void saveAttendanceRequest(EmpAttLeave empAttLeave) {

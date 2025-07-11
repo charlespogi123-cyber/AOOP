@@ -140,7 +140,15 @@ public class DatabaseHandler {
                 empStmt.setInt(1, Integer.parseInt(newEmp.getEmpID()));
                 empStmt.setString(2, newEmp.getFirstName());
                 empStmt.setString(3, newEmp.getLastName());
-                empStmt.setString(4, newEmp.getBirthdate());
+                
+                // Handle empty birthday properly - provide default date if empty
+                String birthdate = newEmp.getBirthdate();
+                if (birthdate == null || birthdate.trim().isEmpty()) {
+                    empStmt.setString(4, "1990-01-01"); // Default birthday
+                } else {
+                    empStmt.setString(4, birthdate);
+                }
+                
                 empStmt.setInt(5, addressId);
                 empStmt.setString(6, newEmp.getPhoneNumber());
                 empStmt.setInt(7, statusId);
@@ -206,7 +214,15 @@ public class DatabaseHandler {
             try (PreparedStatement empStmt = conn.prepareStatement(empQuery)) {
                 empStmt.setString(1, updatedEmp.getFirstName());
                 empStmt.setString(2, updatedEmp.getLastName());
-                empStmt.setString(3, updatedEmp.getBirthdate());
+                
+                // Handle empty birthday properly - provide default date if empty
+                String birthdate = updatedEmp.getBirthdate();
+                if (birthdate == null || birthdate.trim().isEmpty()) {
+                    empStmt.setString(3, "1990-01-01"); // Default birthday
+                } else {
+                    empStmt.setString(3, birthdate);
+                }
+                
                 empStmt.setInt(4, addressId);
                 empStmt.setString(5, updatedEmp.getPhoneNumber());
                 empStmt.setInt(6, statusId);
@@ -322,31 +338,61 @@ public class DatabaseHandler {
     }
 
     public static void updateEmployeeSalary(EmpSalaryDetails updatedSalary) {
-        String query = "UPDATE salary SET first_name = ?, last_name = ?, sss_no = ?, philhealth_no = ?, tin_no = ?, pagibig_no = ?, basic_salary = ?, rice_allowance = ?, phone_allowance = ?, clothing_allowance = ?, gross_semi = ?, hourly_rate = ? WHERE emp_id = ?";
-
-        try (Connection conn = DatabaseConfig.getInstance().getConnection();
-             PreparedStatement stmt = conn.prepareStatement(query)) {
-
-            stmt.setString(1, updatedSalary.getFirstName());
-            stmt.setString(2, updatedSalary.getLastName());
-            stmt.setString(3, updatedSalary.getSssNo());
-            stmt.setString(4, updatedSalary.getPhilhealthNo());
-            stmt.setString(5, updatedSalary.getTinNo());
-            stmt.setString(6, updatedSalary.getPagibigNo());
-            stmt.setDouble(7, updatedSalary.getBasicSalary());
-            stmt.setDouble(8, updatedSalary.getRiceSubsidy());
-            stmt.setDouble(9, updatedSalary.getPhoneAllowance());
-            stmt.setDouble(10, updatedSalary.getClothingAllowance());
-            stmt.setDouble(11, updatedSalary.getGrossSemi());
-            stmt.setDouble(12, updatedSalary.getHourlyRate());
-            stmt.setString(13, updatedSalary.getEmpID());
-
-            stmt.executeUpdate();
+        Connection conn = DatabaseConfig.getInstance().getConnection();
+        
+        try {
+            conn.setAutoCommit(false);
+            
+            // Update employee basic information
+            String empQuery = "UPDATE employees SET FirstName = ?, LastName = ? WHERE EmployeeID = ?";
+            try (PreparedStatement empStmt = conn.prepareStatement(empQuery)) {
+                empStmt.setString(1, updatedSalary.getFirstName());
+                empStmt.setString(2, updatedSalary.getLastName());
+                empStmt.setString(3, updatedSalary.getEmpID());
+                empStmt.executeUpdate();
+            }
+            
+            // Update government IDs
+            String govQuery = "UPDATE governmentids SET SSSNumber = ?, PhilHealthNumber = ?, TINNumber = ?, PagIBIGNumber = ? WHERE EmployeeID = ?";
+            try (PreparedStatement govStmt = conn.prepareStatement(govQuery)) {
+                govStmt.setString(1, updatedSalary.getSssNo());
+                govStmt.setString(2, updatedSalary.getPhilhealthNo());
+                govStmt.setString(3, updatedSalary.getTinNo());
+                govStmt.setString(4, updatedSalary.getPagibigNo());
+                govStmt.setString(5, updatedSalary.getEmpID());
+                govStmt.executeUpdate();
+            }
+            
+            // Update compensation details (exclude GrossSemimonthly and HourlyRate as they are generated columns)
+            String compQuery = "UPDATE compensation SET BasicSalary = ?, RiceSubsidy = ?, PhoneAllowance = ?, ClothingAllowance = ? WHERE EmployeeID = ?";
+            try (PreparedStatement compStmt = conn.prepareStatement(compQuery)) {
+                compStmt.setDouble(1, updatedSalary.getBasicSalary());
+                compStmt.setDouble(2, updatedSalary.getRiceSubsidy());
+                compStmt.setDouble(3, updatedSalary.getPhoneAllowance());
+                compStmt.setDouble(4, updatedSalary.getClothingAllowance());
+                compStmt.setString(5, updatedSalary.getEmpID());
+                int rowsUpdated = compStmt.executeUpdate();
+                System.out.println("Compensation updated: " + rowsUpdated + " rows affected");
+            }
+            
+            conn.commit();
             System.out.println("Salary updated successfully");
 
         } catch (SQLException e) {
+            try {
+                conn.rollback();
+            } catch (SQLException rollbackEx) {
+                System.err.println("Error during rollback: " + rollbackEx.getMessage());
+            }
             System.err.println("Error updating salary: " + e.getMessage());
             e.printStackTrace();
+        } finally {
+            try {
+                conn.setAutoCommit(true);
+                conn.close();
+            } catch (SQLException e) {
+                System.err.println("Error closing connection: " + e.getMessage());
+            }
         }
     }
 
@@ -473,6 +519,143 @@ public class DatabaseHandler {
         return payrollData;
     }
 
+    // Payroll Operations
+    public static List<String[]> getPayrollData() {
+        List<String[]> payrollList = new ArrayList<>();
+        
+        // Query to get payroll data from the Payroll table - using only actual database columns
+        String query = """
+            SELECT 
+                p.EmployeeID,
+                e.FirstName,
+                e.LastName,
+                pos.PositionName,
+                d.DepartmentName,
+                p.Gross as total_earnings,
+                g.SSSNumber,
+                p.SSSContribution as ee_sss,
+                g.PhilHealthNumber,
+                p.PhilHealthContribution as ee_philhealth,
+                g.PagIBIGNumber,
+                p.PagIBIGContribution as ee_pagibig,
+                g.TINNumber,
+                p.Tax as ee_tax,
+                p.NetPay as net_pay,
+                p.PayrollPeriodStartDate
+            FROM Payroll p
+            LEFT JOIN employees e ON p.EmployeeID = e.EmployeeID
+            LEFT JOIN governmentids g ON e.EmployeeID = g.EmployeeID
+            LEFT JOIN positions pos ON e.PositionID = pos.PositionID
+            LEFT JOIN departments d ON e.DepartmentID = d.DepartmentID
+            WHERE p.EmployeeID IS NOT NULL
+            ORDER BY p.EmployeeID DESC
+            """;
+
+        try (Connection conn = DatabaseConfig.getInstance().getConnection();
+             PreparedStatement stmt = conn.prepareStatement(query);
+             ResultSet rs = stmt.executeQuery()) {
+
+            // Fetch each row and map to the desired column format
+            while (rs.next()) {
+                String[] row = new String[15]; // 14 display columns + 1 hidden date column for filtering
+                
+                // Map joined table data to desired format
+                row[0] = rs.getString("EmployeeID") != null ? rs.getString("EmployeeID") : ""; // Employee No
+                
+                // Combine FirstName and LastName
+                String firstName = rs.getString("FirstName") != null ? rs.getString("FirstName") : "";
+                String lastName = rs.getString("LastName") != null ? rs.getString("LastName") : "";
+                row[1] = (firstName + " " + lastName).trim(); // Employee Full Name
+                
+                row[2] = rs.getString("PositionName") != null ? rs.getString("PositionName") : ""; // Position
+                row[3] = rs.getString("DepartmentName") != null ? rs.getString("DepartmentName") : ""; // Department
+                
+                // Use total_earnings as Gross Income
+                double grossIncome = 0.0;
+                try {
+                    grossIncome = rs.getDouble("total_earnings");
+                } catch (SQLException e) {
+                    grossIncome = 0.0;
+                }
+                row[4] = String.format("%.2f", grossIncome); // Gross Income
+                
+                row[5] = rs.getString("SSSNumber") != null ? rs.getString("SSSNumber") : ""; // Social Security No.
+                
+                // Use ee_sss as Social Security Contribution
+                double sssContrib = 0.0;
+                try {
+                    sssContrib = rs.getDouble("ee_sss");
+                } catch (SQLException e) {
+                    sssContrib = 0.0;
+                }
+                row[6] = String.format("%.2f", sssContrib); // Social Security Contribution
+                
+                row[7] = rs.getString("PhilHealthNumber") != null ? rs.getString("PhilHealthNumber") : ""; // Philhealth No.
+                
+                // Use ee_philhealth as Philhealth Contribution
+                double philhealthContrib = 0.0;
+                try {
+                    philhealthContrib = rs.getDouble("ee_philhealth");
+                } catch (SQLException e) {
+                    philhealthContrib = 0.0;
+                }
+                row[8] = String.format("%.2f", philhealthContrib); // Philhealth Contribution
+                
+                row[9] = rs.getString("PagIBIGNumber") != null ? rs.getString("PagIBIGNumber") : ""; // Pag-ibig No.
+                
+                // Use ee_pagibig as Pag-ibig Contribution
+                double pagibigContrib = 0.0;
+                try {
+                    pagibigContrib = rs.getDouble("ee_pagibig");
+                } catch (SQLException e) {
+                    pagibigContrib = 0.0;
+                }
+                row[10] = String.format("%.2f", pagibigContrib); // Pag-ibig Contribution
+                
+                row[11] = rs.getString("TINNumber") != null ? rs.getString("TINNumber") : ""; // TIN
+                
+                // Use ee_tax as Withholding Tax
+                double withholdingTax = 0.0;
+                try {
+                    withholdingTax = rs.getDouble("ee_tax");
+                } catch (SQLException e) {
+                    withholdingTax = 0.0;
+                }
+                row[12] = String.format("%.2f", withholdingTax); // Withholding Tax
+                
+                // Use net_pay
+                double netPay = 0.0;
+                try {
+                    netPay = rs.getDouble("net_pay");
+                } catch (SQLException e) {
+                    netPay = 0.0;
+                }
+                row[13] = String.format("%.2f", netPay); // Net Pay
+                
+                // Add the date as the 15th column (index 14) for filtering - not displayed
+                Date payrollDate = rs.getDate("PayrollPeriodStartDate");
+                row[14] = payrollDate != null ? payrollDate.toString() : "";
+                
+                payrollList.add(row);
+            }
+
+        } catch (SQLException e) {
+            System.err.println("Error getting payroll data: " + e.getMessage());
+            e.printStackTrace();
+        }
+
+        return payrollList;
+    }
+
+    public static String[] getPayrollColumnNames() {
+        // Return the fixed column names that match the image + hidden date column
+        return new String[]{
+            "Employee No", "Employee Full Name", "Position", "Department", "Gross Income",
+            "Social Security No.", "Social Security Contribution", "Philhealth No.", 
+            "Philhealth Contribution", "Pag-ibig No.", "Pag-ibig Contribution", 
+            "TIN", "Withholding Tax", "Net Pay", "PayrollPeriodStartDate"
+        };
+    }
 
     // Utility methods for validation
     public static String capitalizeWords(String input, int maxLength) {
