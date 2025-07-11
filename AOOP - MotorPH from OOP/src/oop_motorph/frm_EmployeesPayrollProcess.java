@@ -1045,16 +1045,9 @@ public class frm_EmployeesPayrollProcess extends javax.swing.JFrame {
                 <html>
                 <head>
                     <style>
-                        /* CRITICAL: Force Landscape Orientation for PDF */
+                        /* Perfect PDF Export Settings - Matches Browser Display Exactly */
                         @page {
-                            size: 11in 8.5in; /* Force landscape dimensions */
-                            margin: 0.3in 0.2in;
-                            orientation: landscape;
-                        }
-                        
-                        /* Alternative page settings for different browsers */
-                        @page :first {
-                            size: landscape;
+                            size: A4 landscape;
                             margin: 0.3in 0.2in;
                         }
                         
@@ -1076,8 +1069,6 @@ public class frm_EmployeesPayrollProcess extends javax.swing.JFrame {
                                 line-height: 1.3 !important;
                                 background: white !important;
                                 color: #000 !important;
-                                /* Force minimum width for landscape layout */
-                                min-width: 10in !important;
                             }
                             
                             .header {
@@ -1103,35 +1094,12 @@ public class frm_EmployeesPayrollProcess extends javax.swing.JFrame {
                             }
                             
                             table {
-                                width: 1180px !important; /* Fixed width that matches sum of all columns */
+                                width: 100%% !important;
                                 border-collapse: collapse !important;
                                 margin-bottom: 10px !important;
-                                font-size: 9px !important;
-                                table-layout: fixed !important; /* Fixed layout for consistent columns */
+                                font-size: 10px !important;
+                                table-layout: fixed !important;
                                 page-break-inside: auto !important;
-                                /* Center the table on page */
-                                margin-left: auto !important;
-                                margin-right: auto !important;
-                            }
-                            
-                            /* Ensure headers repeat on each page */
-                            thead {
-                                display: table-header-group !important;
-                            }
-                            
-                            tbody {
-                                display: table-row-group !important;
-                            }
-                            
-                            /* Prevent column width changes on page breaks */
-                            tr {
-                                page-break-inside: avoid !important;
-                            }
-                            
-                            /* Force consistent row height */
-                            tr {
-                                height: auto !important;
-                                min-height: 25px !important;
                             }
                             
                             th {
@@ -1139,55 +1107,45 @@ public class frm_EmployeesPayrollProcess extends javax.swing.JFrame {
                                 color: white !important;
                                 font-weight: bold !important;
                                 text-align: center !important;
-                                padding: 6px 3px !important;
+                                padding: 8px 4px !important;
                                 border: 1px solid #ddd !important;
-                                font-size: 9px !important;
-                                line-height: 1.1 !important;
+                                font-size: 10px !important;
+                                line-height: 1.2 !important;
                                 word-wrap: break-word !important;
                                 page-break-inside: avoid !important;
-                                white-space: normal !important;
                             }
                             
                             td {
-                                padding: 4px 2px !important;
+                                padding: 6px 4px !important;
                                 border: 1px solid #ddd !important;
                                 text-align: center !important;
-                                font-size: 8px !important;
-                                line-height: 1.1 !important;
+                                font-size: 9px !important;
+                                line-height: 1.2 !important;
                                 word-wrap: break-word !important;
                                 overflow: hidden !important;
                                 text-overflow: ellipsis !important;
-                                white-space: nowrap !important;
                             }
                             
-                            /* Left align text columns and allow wrapping for long text */
+                            /* Left align text columns */
                             td:nth-child(2), td:nth-child(3), td:nth-child(4) {
                                 text-align: left !important;
-                                white-space: normal !important;
-                                word-wrap: break-word !important;
                             }
                             
-                            /* Right align monetary columns */
-                            td:nth-child(5), td:nth-child(7), td:nth-child(9), td:nth-child(11), td:nth-child(13), td:nth-child(14) {
-                                text-align: right !important;
-                                white-space: nowrap !important;
-                            }
-                            
-                            /* Fixed column widths to ensure consistency across pages */
-                            th:nth-child(1), td:nth-child(1) { width: 60px !important; max-width: 60px !important; } /* Employee No */
-                            th:nth-child(2), td:nth-child(2) { width: 140px !important; max-width: 140px !important; } /* Full Name */
-                            th:nth-child(3), td:nth-child(3) { width: 120px !important; max-width: 120px !important; } /* Position */
-                            th:nth-child(4), td:nth-child(4) { width: 100px !important; max-width: 100px !important; } /* Department */
-                            th:nth-child(5), td:nth-child(5) { width: 80px !important; max-width: 80px !important; } /* Gross Income */
-                            th:nth-child(6), td:nth-child(6) { width: 95px !important; max-width: 95px !important; } /* SSS No */
-                            th:nth-child(7), td:nth-child(7) { width: 60px !important; max-width: 60px !important; } /* SSS Contrib */
-                            th:nth-child(8), td:nth-child(8) { width: 95px !important; max-width: 95px !important; } /* PhilHealth No */
-                            th:nth-child(9), td:nth-child(9) { width: 60px !important; max-width: 60px !important; } /* PhilHealth Contrib */
-                            th:nth-child(10), td:nth-child(10) { width: 95px !important; max-width: 95px !important; } /* Pag-IBIG No */
-                            th:nth-child(11), td:nth-child(11) { width: 60px !important; max-width: 60px !important; } /* Pag-IBIG Contrib */
-                            th:nth-child(12), td:nth-child(12) { width: 85px !important; max-width: 85px !important; } /* TIN */
-                            th:nth-child(13), td:nth-child(13) { width: 70px !important; max-width: 70px !important; } /* Withholding Tax */
-                            th:nth-child(14), td:nth-child(14) { width: 80px !important; max-width: 80px !important; } /* Net Pay */
+                            /* Fixed column widths for perfect layout */
+                            th:nth-child(1), td:nth-child(1) { width: 6%% !important; }
+                            th:nth-child(2), td:nth-child(2) { width: 14%% !important; }
+                            th:nth-child(3), td:nth-child(3) { width: 12%% !important; }
+                            th:nth-child(4), td:nth-child(4) { width: 10%% !important; }
+                            th:nth-child(5), td:nth-child(5) { width: 7%% !important; }
+                            th:nth-child(6), td:nth-child(6) { width: 8%% !important; }
+                            th:nth-child(7), td:nth-child(7) { width: 6%% !important; }
+                            th:nth-child(8), td:nth-child(8) { width: 8%% !important; }
+                            th:nth-child(9), td:nth-child(9) { width: 6%% !important; }
+                            th:nth-child(10), td:nth-child(10) { width: 6%% !important; }
+                            th:nth-child(11), td:nth-child(11) { width: 6%% !important; }
+                            th:nth-child(12), td:nth-child(12) { width: 5%% !important; }
+                            th:nth-child(13), td:nth-child(13) { width: 6%% !important; }
+                            th:nth-child(14), td:nth-child(14) { width: 6%% !important; }
                             
                             .totals-row {
                                 background-color: #28a745 !important;
@@ -1682,88 +1640,89 @@ public class frm_EmployeesPayrollProcess extends javax.swing.JFrame {
     // End of variables declaration//GEN-END:variables
 
     private void saveToPDF(String htmlContent) {
-        try {
-            // Create a temporary HTML file to open in browser for PDF export
-            java.io.File tempHtml = java.io.File.createTempFile("payroll_report_", ".html");
-            
-            // Write the HTML content with enhanced print-optimized CSS for exact browser matching
-            String printOptimizedHTML = htmlContent
-                // Ensure print styles apply to screen as well for perfect consistency
-                .replace("@media print {", "@media screen, print {");
-            
-            try (java.io.FileWriter writer = new java.io.FileWriter(tempHtml)) {
-                writer.write(printOptimizedHTML);
+        javax.swing.JFileChooser fileChooser = new javax.swing.JFileChooser();
+        fileChooser.setDialogTitle("Save Payroll Summary as PDF");
+        fileChooser.setSelectedFile(new java.io.File("PayrollSummary_" + new java.text.SimpleDateFormat("yyyyMMdd_HHmmss").format(new java.util.Date()) + ".pdf"));
+        fileChooser.setFileFilter(new javax.swing.filechooser.FileNameExtensionFilter("PDF files", "pdf"));
+        
+        if (fileChooser.showSaveDialog(this) == javax.swing.JFileChooser.APPROVE_OPTION) {
+            java.io.File file = fileChooser.getSelectedFile();
+            if (!file.getName().toLowerCase().endsWith(".pdf")) {
+                file = new java.io.File(file.getAbsolutePath() + ".pdf");
             }
             
-            // Use Java's Desktop API to open the HTML in browser for PDF export
-            if (java.awt.Desktop.isDesktopSupported()) {
-                java.awt.Desktop desktop = java.awt.Desktop.getDesktop();
+            try {
+                // Create a temporary HTML file to convert to PDF
+                java.io.File tempHtml = java.io.File.createTempFile("payroll_report", ".html");
                 
-                // Open the HTML file in the default browser for printing/PDF saving
-                desktop.browse(tempHtml.toURI());
+                // Write the HTML content with enhanced print-optimized CSS for exact browser matching
+                String printOptimizedHTML = htmlContent
+                    // Ensure print styles apply to screen as well for perfect consistency
+                    .replace("@media print {", "@media screen, print {");
                 
-                // Show improved instructions that explain the single-step process
-                javax.swing.JOptionPane.showMessageDialog(this,
-                    "✅ PAYROLL REPORT OPENED IN BROWSER\n\n" +
-                    "📋 TO SAVE AS PDF (ONE SIMPLE PROCESS):\n\n" +
-                    "1. Press Ctrl+P (or Cmd+P on Mac) in your browser\n" +
-                    "2. Choose 'Save as PDF' or 'Microsoft Print to PDF'\n" +
-                    "3. 🔴 IMPORTANT: Set Orientation to LANDSCAPE\n" +
-                    "4. Set these settings for best results:\n" +
-                    "   • Paper: A4 or Letter\n" +
-                    "   • Margins: None or Minimum\n" +
-                    "   • Background graphics: ON\n" +
-                    "5. Click 'Save' and choose your folder\n\n" +
-                    "⚠️ LANDSCAPE MODE IS REQUIRED!\n" +
-                    "Portrait mode will make the table cramped and unreadable.",
-                    "PDF Export Instructions",
-                    javax.swing.JOptionPane.INFORMATION_MESSAGE);
-                    
-                // Clean up temp file after delay
-                java.util.Timer timer = new java.util.Timer();
-                timer.schedule(new java.util.TimerTask() {
-                    @Override
-                    public void run() {
-                        try {
-                            tempHtml.delete();
-                        } catch (Exception e) {
-                            // Ignore cleanup errors
-                        }
-                        timer.cancel();
-                    }
-                }, 15000); // Delete after 15 seconds (more time for user to read)
-            } else {
-                // Fallback: save HTML file to desktop if desktop API not supported
-                String userHome = System.getProperty("user.home");
-                java.io.File desktopDir = new java.io.File(userHome, "Desktop");
-                if (!desktopDir.exists()) {
-                    desktopDir = new java.io.File(userHome); // Fallback to home directory
+                try (java.io.FileWriter writer = new java.io.FileWriter(tempHtml)) {
+                    writer.write(printOptimizedHTML);
                 }
                 
-                String timestamp = new java.text.SimpleDateFormat("yyyyMMdd_HHmmss").format(new java.util.Date());
-                java.io.File htmlFile = new java.io.File(desktopDir, "PayrollReport_" + timestamp + ".html");
-                
-                java.nio.file.Files.copy(tempHtml.toPath(), htmlFile.toPath(), 
-                    java.nio.file.StandardCopyOption.REPLACE_EXISTING);
-                
-                javax.swing.JOptionPane.showMessageDialog(this,
-                    "📄 Report saved to: " + htmlFile.getAbsolutePath() + "\n\n" +
-                    "📋 To convert to PDF:\n" +
-                    "1. Open the HTML file in your browser\n" +
-                    "2. Press Ctrl+P and save as PDF\n" +
-                    "3. Use LANDSCAPE orientation for proper layout",
-                    "HTML Export Complete",
-                    javax.swing.JOptionPane.INFORMATION_MESSAGE);
+                // Use Java's Desktop API to open and print the HTML (which allows save as PDF)
+                if (java.awt.Desktop.isDesktopSupported()) {
+                    java.awt.Desktop desktop = java.awt.Desktop.getDesktop();
                     
-                tempHtml.delete();
+                    // Open the HTML file in the default browser for printing/PDF saving
+                    desktop.browse(tempHtml.toURI());
+                    
+                    // Show detailed instructions for perfect PDF export
+                    javax.swing.JOptionPane.showMessageDialog(this,
+                        "The report has been opened in your browser.\n\n" +
+                        "To save as PDF with EXACT browser formatting:\n\n" +
+                        "1. Press Ctrl+P (or Cmd+P on Mac) to open print dialog\n" +
+                        "2. Select 'Save as PDF' or 'Microsoft Print to PDF' as destination\n" +
+                        "3. IMPORTANT: Set these print settings:\n" +
+                        "   • Paper size: A4\n" +
+                        "   • Orientation: Landscape\n" +
+                        "   • Margins: None (or Minimum)\n" +
+                        "   • Scale: 100% (Default)\n" +
+                        "   • Background graphics: ON (Enable)\n" +
+                        "4. Click 'Save' and choose your location\n\n" +
+                        "Note: These settings ensure the PDF matches the browser display exactly.",
+                        "PDF Export Instructions - EXACT Browser Format",
+                        javax.swing.JOptionPane.INFORMATION_MESSAGE);
+                        
+                    // Clean up temp file after delay
+                    java.util.Timer timer = new java.util.Timer();
+                    timer.schedule(new java.util.TimerTask() {
+                        @Override
+                        public void run() {
+                            try {
+                                tempHtml.delete();
+                            } catch (Exception e) {
+                                // Ignore cleanup errors
+                            }
+                            timer.cancel();
+                        }
+                    }, 10000); // Delete after 10 seconds
+                } else {
+                    // Fallback: save HTML file directly
+                    java.io.File htmlFile = new java.io.File(file.getAbsolutePath().replace(".pdf", ".html"));
+                    java.nio.file.Files.copy(tempHtml.toPath(), htmlFile.toPath(), 
+                        java.nio.file.StandardCopyOption.REPLACE_EXISTING);
+                    
+                    javax.swing.JOptionPane.showMessageDialog(this,
+                        "Report saved as HTML file: " + htmlFile.getAbsolutePath() + "\\n" +
+                        "You can open this file in a browser and save as PDF using Ctrl+P",
+                        "HTML Export Complete",
+                        javax.swing.JOptionPane.INFORMATION_MESSAGE);
+                        
+                    tempHtml.delete();
+                }
+                
+            } catch (Exception ex) {
+                javax.swing.JOptionPane.showMessageDialog(this,
+                    "Error exporting PDF: " + ex.getMessage(),
+                    "Export Error",
+                    javax.swing.JOptionPane.ERROR_MESSAGE);
+                ex.printStackTrace();
             }
-            
-        } catch (Exception ex) {
-            javax.swing.JOptionPane.showMessageDialog(this,
-                "Error exporting report: " + ex.getMessage(),
-                "Export Error",
-                javax.swing.JOptionPane.ERROR_MESSAGE);
-            ex.printStackTrace();
         }
     }
 }
