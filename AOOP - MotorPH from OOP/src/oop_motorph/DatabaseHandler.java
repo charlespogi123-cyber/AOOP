@@ -828,4 +828,60 @@ public class DatabaseHandler {
         
         return 1; // Default to 1 if no employees exist or error occurs
     }
+
+    // Helper methods for normalized database operations
+    
+    public static List<String> getAllSupervisors() {
+        List<String> supervisors = new ArrayList<>();
+        supervisors.add("N/A"); // Option for no supervisor
+        
+        String query = "SELECT CONCAT(FirstName, ' ', LastName) as FullName " +
+                      "FROM employees " +
+                      "WHERE EmployeeID IS NOT NULL " +
+                      "ORDER BY FirstName, LastName";
+
+        try (Connection conn = DatabaseConfig.getInstance().getConnection();
+             PreparedStatement stmt = conn.prepareStatement(query);
+             ResultSet rs = stmt.executeQuery()) {
+
+            while (rs.next()) {
+                String fullName = rs.getString("FullName");
+                if (fullName != null && !fullName.trim().isEmpty()) {
+                    supervisors.add(fullName);
+                }
+            }
+        } catch (SQLException e) {
+            System.err.println("Error getting supervisors: " + e.getMessage());
+            e.printStackTrace();
+        }
+
+        return supervisors;
+    }
+    
+    // Debug method to check supervisor relationships
+    public static void debugSupervisorData() {
+        String query = "SELECT e.EmployeeID, e.FirstName, e.LastName, " +
+                      "e.ImmediateSupervisorID, " +
+                      "CONCAT(sup.FirstName, ' ', sup.LastName) as SupervisorName " +
+                      "FROM employees e " +
+                      "LEFT JOIN employees sup ON e.ImmediateSupervisorID = sup.EmployeeID " +
+                      "ORDER BY e.EmployeeID";
+
+        try (Connection conn = DatabaseConfig.getInstance().getConnection();
+             PreparedStatement stmt = conn.prepareStatement(query);
+             ResultSet rs = stmt.executeQuery()) {
+
+            System.out.println("=== SUPERVISOR DEBUG INFO ===");
+            while (rs.next()) {
+                System.out.println("Employee: " + rs.getString("EmployeeID") + " - " + 
+                                 rs.getString("FirstName") + " " + rs.getString("LastName") + 
+                                 " | Supervisor ID: " + rs.getString("ImmediateSupervisorID") + 
+                                 " | Supervisor Name: " + rs.getString("SupervisorName"));
+            }
+            System.out.println("=== END DEBUG INFO ===");
+        } catch (SQLException e) {
+            System.err.println("Error debugging supervisor data: " + e.getMessage());
+            e.printStackTrace();
+        }
+    }
 }

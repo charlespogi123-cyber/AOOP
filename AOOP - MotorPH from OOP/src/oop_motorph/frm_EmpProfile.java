@@ -2,6 +2,7 @@ package oop_motorph;
 
 import javax.swing.JOptionPane;
 import java.awt.*;
+import java.util.List;
 
 
 public class frm_EmpProfile extends javax.swing.JFrame {
@@ -20,7 +21,9 @@ public class frm_EmpProfile extends javax.swing.JFrame {
         // Initialize combo boxes
         cmb_empStatus.setModel(new javax.swing.DefaultComboBoxModel<>(new String[]{"Regular", "Probationary"}));
         cbox_position.setModel(new javax.swing.DefaultComboBoxModel<>(new String[]{"HR Manager", "Account Team Leader", "Payroll Manager", "HR Rank and File", "Payroll Rank and File", "Account Rank and File"}));
-        cmb_Supervisor.setModel(new javax.swing.DefaultComboBoxModel<>(new String[]{"N/A", "Romualdez Fredrick", "Villanueva Andrea Mae", "Alvaro Roderick", "San Jose Brad", "Salcedo Anthony"}));
+        
+        // Load supervisors dynamically from database
+        loadSupervisors();
 
         // Apply modern styling after components are initialized
         applyModernStyling();
@@ -397,6 +400,21 @@ public class frm_EmpProfile extends javax.swing.JFrame {
         }
     }
 
+    // Load supervisors dynamically from database
+    private void loadSupervisors() {
+        try {
+            // Debug supervisor data
+            DatabaseHandler.debugSupervisorData();
+            
+            List<String> supervisors = DatabaseHandler.getAllSupervisors();
+            String[] supervisorArray = supervisors.toArray(new String[0]);
+            cmb_Supervisor.setModel(new javax.swing.DefaultComboBoxModel<>(supervisorArray));
+        } catch (Exception e) {
+            System.err.println("Error loading supervisors: " + e.getMessage());
+            // Fallback to default list if database loading fails
+            cmb_Supervisor.setModel(new javax.swing.DefaultComboBoxModel<>(new String[]{"N/A", "No supervisors available"}));
+        }
+    }
 
     /**
      * This method is called from within the constructor to initialize the form.
