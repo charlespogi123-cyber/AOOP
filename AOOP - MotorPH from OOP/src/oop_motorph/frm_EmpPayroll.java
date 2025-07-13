@@ -1106,10 +1106,11 @@ public class frm_EmpPayroll extends javax.swing.JFrame {
 
                 // Optional preview panel
                 JScrollPane preview = new JScrollPane(editorPane);
-                int option = JOptionPane.showConfirmDialog(null, preview, "Payslip Preview",
-                        JOptionPane.YES_NO_OPTION, JOptionPane.PLAIN_MESSAGE);
+                String[] options = {"Print", "Exit"};
+                int option = JOptionPane.showOptionDialog(null, preview, "Payslip Preview",
+                        JOptionPane.YES_NO_OPTION, JOptionPane.PLAIN_MESSAGE, null, options, options[0]);
 
-                if (option == JOptionPane.YES_OPTION) {
+                if (option == 0) { // Print option selected
                     // Force layout again just before image capture
                     editorPane.setSize(1000, editorPane.getPreferredSize().height);
 
