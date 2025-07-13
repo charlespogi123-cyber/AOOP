@@ -189,6 +189,7 @@ public class frm_EmployeesPayrollProcess extends javax.swing.JFrame {
         
         // Style action buttons with enhanced styling
         styleActionButtonEnhanced(btn_ViewEmp, new Color(59, 130, 246));
+        styleActionButtonEnhanced(btn_printPayslip, new Color(34, 197, 94)); // Green for print payslip
         
         // Style navigation buttons with enhanced modern design and better spacing
         styleNavigationButtonEnhanced(btn_Profile, new Color(107, 114, 128), false);
@@ -384,6 +385,7 @@ public class frm_EmployeesPayrollProcess extends javax.swing.JFrame {
         jScrollPane1 = new javax.swing.JScrollPane();
         tbl_Employees = new javax.swing.JTable();
         btn_ViewEmp = new javax.swing.JButton();
+        btn_printPayslip = new javax.swing.JButton();
         cmbMonthFilter = new javax.swing.JComboBox<>();
         jLabel6 = new javax.swing.JLabel();
         jLabel2 = new javax.swing.JLabel();
@@ -437,6 +439,16 @@ public class frm_EmployeesPayrollProcess extends javax.swing.JFrame {
             }
         });
 
+        btn_printPayslip.setBackground(new java.awt.Color(34, 197, 94));
+        btn_printPayslip.setFont(new java.awt.Font("Segoe UI", 1, 12)); // NOI18N
+        btn_printPayslip.setForeground(new java.awt.Color(255, 255, 255));
+        btn_printPayslip.setText("PRINT PAYSLIP");
+        btn_printPayslip.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                btn_printPayslipActionPerformed(evt);
+            }
+        });
+
         cmbMonthFilter.setFont(new java.awt.Font("Segoe UI", 0, 12)); // NOI18N
         cmbMonthFilter.setModel(new javax.swing.DefaultComboBoxModel<>(new String[] { "All Months" }));
         cmbMonthFilter.addActionListener(new java.awt.event.ActionListener() {
@@ -459,6 +471,8 @@ public class frm_EmployeesPayrollProcess extends javax.swing.JFrame {
             .addGroup(jPanel2Layout.createSequentialGroup()
                 .addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
                 .addComponent(btn_ViewEmp)
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                .addComponent(btn_printPayslip)
                 .addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
             .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, jPanel2Layout.createSequentialGroup()
                 .addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
@@ -477,7 +491,9 @@ public class frm_EmployeesPayrollProcess extends javax.swing.JFrame {
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                 .addComponent(jScrollPane1, javax.swing.GroupLayout.DEFAULT_SIZE, 437, Short.MAX_VALUE)
                 .addGap(18, 18, 18)
-                .addComponent(btn_ViewEmp)
+                .addGroup(jPanel2Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
+                    .addComponent(btn_ViewEmp)
+                    .addComponent(btn_printPayslip))
                 .addContainerGap())
         );
 
@@ -754,6 +770,244 @@ public class frm_EmployeesPayrollProcess extends javax.swing.JFrame {
                 JOptionPane.ERROR_MESSAGE);
         }
     }//GEN-LAST:event_btn_ViewEmpActionPerformed
+
+    private void btn_printPayslipActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btn_printPayslipActionPerformed
+        int selectedRow = tbl_Employees.getSelectedRow();
+        String payslipHTML = generatePayslip(selectedRow);
+
+        if (payslipHTML != null) {
+            try {
+                // Render HTML into a JEditorPane
+                JEditorPane editorPane = new JEditorPane();
+                editorPane.setContentType("text/html");
+                editorPane.setText(payslipHTML);
+                editorPane.setSize(1000, editorPane.getPreferredSize().height);
+                editorPane.setEditable(false);
+
+                // Force layout & calculate correct height
+                editorPane.revalidate();
+                editorPane.repaint();
+
+                // Optional preview panel
+                javax.swing.JScrollPane preview = new javax.swing.JScrollPane(editorPane);
+                String[] options = {"Print", "Exit"};
+                int option = JOptionPane.showOptionDialog(null, preview, "Payslip Preview",
+                        JOptionPane.YES_NO_OPTION, JOptionPane.PLAIN_MESSAGE, null, options, options[0]);
+
+                if (option == 0) { // Print option selected
+                    // Force layout again just before image capture
+                    editorPane.setSize(1000, editorPane.getPreferredSize().height);
+
+                    // Create BufferedImage of appropriate height
+                    int width = editorPane.getWidth();
+                    int height = editorPane.getPreferredSize().height;
+
+                    BufferedImage image = new BufferedImage(width, height, BufferedImage.TYPE_INT_RGB);
+                    Graphics2D g2d = image.createGraphics();
+                    editorPane.printAll(g2d);
+                    g2d.dispose();
+
+                    // Set up printer job to print the image
+                    PrinterJob job = PrinterJob.getPrinterJob();
+                    job.setPrintable((graphics, pageFormat, pageIndex) -> {
+                        if (pageIndex > 0) return Printable.NO_SUCH_PAGE;
+
+                        double x = pageFormat.getImageableX();
+                        double y = pageFormat.getImageableY();
+
+                        // Scale image if it's wider than printable area
+                        double scaleX = pageFormat.getImageableWidth() / image.getWidth();
+                        double scaleY = pageFormat.getImageableHeight() / image.getHeight();
+                        double scale = Math.min(scaleX, scaleY);
+
+                        Graphics2D g = (Graphics2D) graphics;
+                        g.translate(x, y);
+                        g.scale(scale, scale);
+                        g.drawImage(image, 0, 0, null);
+
+                        return Printable.PAGE_EXISTS;
+                    });
+
+                    if (job.printDialog()) {
+                        job.print();
+                        JOptionPane.showMessageDialog(this, "Printing successful!", "Print", JOptionPane.INFORMATION_MESSAGE);
+                    }
+                }
+            } catch (Exception e) {
+                JOptionPane.showMessageDialog(this, "Print Error: " + e.getMessage(), "Error", JOptionPane.ERROR_MESSAGE);
+            }
+        }
+    }//GEN-LAST:event_btn_printPayslipActionPerformed
+
+    private String generatePayslip(int selectedRow) {
+        if (selectedRow == -1) {
+            JOptionPane.showMessageDialog(this, "Please select a payroll record first.", "No Selection", JOptionPane.WARNING_MESSAGE);
+            return null;
+        }
+
+        // Get the employee ID and period start date from the selected row in the process table
+        String empID = tbl_Employees.getValueAt(selectedRow, 0).toString(); // Employee No column
+        String periodStartStr = tbl_Employees.getValueAt(selectedRow, 14).toString(); // PayrollPeriodStartDate (hidden column)
+
+        // Debug: Show what we're looking for
+        System.out.println("Looking for Employee ID: " + empID);
+        System.out.println("Looking for Period Start: " + periodStartStr);
+
+        // Now get the full payroll data from DatabaseHandler to find the matching record (same as frm_EmpPayroll)
+        List<String[]> payrollData = DatabaseHandler.readPayrollFromDatabase();
+        String[] matchingRow = null;
+
+        // Debug: Show first few rows of payroll data to understand structure
+        System.out.println("Payroll data structure:");
+        for (int i = 0; i < Math.min(3, payrollData.size()); i++) {
+            String[] row = payrollData.get(i);
+            System.out.println("Row " + i + ": " + java.util.Arrays.toString(row));
+        }
+
+        // Find the matching row in the payroll data based on employee ID AND pay period start date
+        // Note: The database returns header row first, so skip index 0
+        for (int i = 1; i < payrollData.size(); i++) {
+            String[] row = payrollData.get(i);
+            if (row.length > 3) {
+                // For database payroll data: EmployeeID is at index 3, PayrollPeriodStartDate is at index 0
+                String rowEmpID = row[3]; // EmployeeID column
+                String rowPeriodStart = row[0]; // PayrollPeriodStartDate column
+                
+                System.out.println("Comparing: Row EmpID=" + rowEmpID + " with " + empID + 
+                                 ", Row Period=" + rowPeriodStart + " with " + periodStartStr);
+                
+                if (rowEmpID.trim().equals(empID.trim()) && rowPeriodStart.trim().equals(periodStartStr.trim())) {
+                    matchingRow = row;
+                    System.out.println("MATCH FOUND!");
+                    break;
+                }
+            }
+        }
+
+        if (matchingRow == null) {
+            JOptionPane.showMessageDialog(this, "No matching payroll data found for the selected employee.", "Data Not Found", JOptionPane.WARNING_MESSAGE);
+            return null;
+        }
+
+        // Extract data from the matching payroll row (same structure as frm_EmpPayroll)
+        // Database columns: Period Start(0), Period End(1), Payroll ID(2), EmployeeID(3),
+        // Regular Hours(4), Overtime Hours(5), Total Hours(6), Salary(7), Rice(8), Phone(9), 
+        // Clothing(10), Total Allowances(11), Gross(12), Taxable Income(13), SSS(14), 
+        // PhilHealth(15), PagIBIG(16), Tax(17), Deductions(18), Net Pay(19)
+        String startDate = matchingRow[0];
+        String endDate = matchingRow[1];
+        String payrollID = matchingRow[2];
+        String empIDFromData = matchingRow[3];
+        String regularHours = matchingRow[4];
+        String overtimeHours = matchingRow[5];
+        String totalHours = matchingRow[6];
+        String salary = matchingRow[7];
+        String rice = matchingRow[8];
+        String phone = matchingRow[9];
+        String clothing = matchingRow[10];
+        String totalAllow = matchingRow[11];
+        String gross = matchingRow[12];
+        String taxable = matchingRow[13];
+        String sss = matchingRow[14];
+        String philhealth = matchingRow[15];
+        String pagibig = matchingRow[16];
+        String tax = matchingRow[17];
+        String deductions = matchingRow[18];
+        String netPay = matchingRow[19];
+
+        return """
+    <html>
+    <head>
+        <style>
+            body {
+                font-family: Arial, sans-serif;
+                background: #f3f3f3;
+                padding: 20px;
+            }
+            table {
+                border-collapse: collapse;
+                width: 100%%;
+                background-color: #fff;
+                border: 1px solid #ccc;
+            }
+            th {
+                background-color: #2c3e50;
+                color: white;
+                padding: 10px;
+                text-align: left;
+            }
+            td {
+                padding: 8px 12px;
+                border-bottom: 1px solid #eee;
+                vertical-align: top;
+            }
+            .section {
+                background-color: #f9f9f9;
+                font-weight: bold;
+                color: #2c3e50;
+            }
+            .highlight {
+                background-color: #eafaf1;
+                color: #2e7d32;
+                font-weight: bold;
+            }
+        </style>
+    </head>
+    <body>
+        <h2 style='text-align:center;'>MOTORPH Payslip</h2>
+        <table>
+            <tr class='section'><td colspan='6'>Employee & Payroll Info</td></tr>
+            <tr>
+                <td><strong>Payroll ID</strong></td><td>%s</td>
+                <td><strong>Employee ID</strong></td><td>%s</td>
+                <td><strong>Pay Period</strong></td><td>%s to %s</td>
+            </tr>
+            <tr class='section'><td colspan='6'>Work Hours</td></tr>
+            <tr>
+                <td><strong>Regular Hours</strong></td><td>%s hrs</td>
+                <td><strong>Overtime Hours</strong></td><td>%s hrs</td>
+                <td><strong>Total Hours</strong></td><td>%s hrs</td>
+            </tr>
+            <tr class='section'><td colspan='6'>Earnings & Allowances</td></tr>
+            <tr>
+                <td><strong>Basic Salary</strong></td><td>₱%s</td>
+                <td><strong>Rice Allowance</strong></td><td>₱%s</td>
+                <td><strong>Phone Allowance</strong></td><td>₱%s</td>
+            </tr>
+            <tr>
+                <td><strong>Clothing Allowance</strong></td><td>₱%s</td>
+                <td><strong>Total Allowances</strong></td><td colspan='3'>₱%s</td>
+            </tr>
+            <tr class='section'><td colspan='6'>Deductions</td></tr>
+            <tr>
+                <td><strong>SSS</strong></td><td>₱%s</td>
+                <td><strong>PhilHealth</strong></td><td>₱%s</td>
+                <td><strong>Pag-IBIG</strong></td><td>₱%s</td>
+            </tr>
+            <tr>
+                <td><strong>Tax Withheld</strong></td><td>₱%s</td>
+                <td><strong>Total Deductions</strong></td><td colspan='3'>₱%s</td>
+            </tr>
+            <tr class='section'><td colspan='6'>Summary</td></tr>
+            <tr>
+                <td><strong>Gross Pay</strong></td><td>₱%s</td>
+                <td><strong>Taxable Income</strong></td><td>₱%s</td>
+                <td class='highlight'><strong>NET PAY</strong></td><td class='highlight'>₱%s</td>
+            </tr>
+        </table>
+        <p style='text-align:center; font-size:11px; color:#777; margin-top:15px;'>
+            This is a system-generated payslip. No signature required.
+        </p>
+    </body>
+    </html>
+    """.formatted(
+                payrollID, empIDFromData, startDate, endDate,
+                regularHours, overtimeHours, totalHours,
+                salary, rice, phone, clothing, totalAllow,
+                sss, philhealth, pagibig, tax, deductions,
+                gross, taxable, netPay
+        );
+    }
 
     private void generatePayrollSummaryReport() {
         try {
@@ -1425,6 +1679,7 @@ public class frm_EmployeesPayrollProcess extends javax.swing.JFrame {
                 filterInfo,
                 tableHeaders.toString(),
                 employeeRows.toString(),
+
                 totalsRow.toString(),
                 rowCount, totalGross, totalDeductions, totalNet,
                 rowCount > 0 ? totalGross / rowCount : 0,
@@ -1635,6 +1890,7 @@ public class frm_EmployeesPayrollProcess extends javax.swing.JFrame {
     private javax.swing.JButton btn_Logout;
     private javax.swing.JButton btn_MyRecords;
     private javax.swing.JButton btn_PayrollSummary;
+    private javax.swing.JButton btn_printPayslip;
     private javax.swing.JButton btn_Profile;
     private javax.swing.JButton btn_SalaryAndStatutory;
     private javax.swing.JButton btn_ViewEmp;
