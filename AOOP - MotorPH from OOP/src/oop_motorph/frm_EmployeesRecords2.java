@@ -1,26 +1,44 @@
 
+
 package oop_motorph;
 
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
+import java.util.LinkedHashMap;
+import java.util.Map;
 import javax.swing.JOptionPane;
+import oop_motorph.EmpDetails;
+import oop_motorph.CSVHandler;
+import oop_motorph.DatabaseHandler;
 
 public class frm_EmployeesRecords2 extends javax.swing.JFrame {
     private EmpDetails empDetails;
     private boolean isEditMode = false;
     private EmpDetails newEmployeeData;
     private String existingEmpID;
+    // Map to store supervisor display name and EmployeeID
+    private Map<String, String> supervisorMap;
     
     public frm_EmployeesRecords2(EmpDetails empDetails, boolean isEditMode) {
+        // Autopopulate supervisor list from employee table, store EmployeeID and name
+        supervisorMap = new LinkedHashMap<>();
+        supervisorMap.put("Select", null);
+        supervisorMap.put("N/A", null);
+        java.util.List<EmpDetails> employees = CSVHandler.getEmployeeData();
+        for (EmpDetails emp : employees) {
+            String name = emp.getFirstName() + " " + emp.getLastName();
+            supervisorMap.put(name + " (" + emp.getEmpID() + ")", emp.getEmpID());
+        }
+
         initComponents();
         this.empDetails = empDetails;
         this.isEditMode = isEditMode;
+        // Set supervisor dropdown model
+        cbox_immSupervisor.setModel(new javax.swing.DefaultComboBoxModel<>(supervisorMap.keySet().toArray(new String[0])));
         populateFields();
         setFieldsEditable(empDetails == null || isEditMode);
-        
+
         setLocationRelativeTo(null);
         setResizable(false);
-        
+
         // Set appropriate title based on mode
         if (empDetails == null) {
             setTitle("Add Employee");
@@ -32,34 +50,41 @@ public class frm_EmployeesRecords2 extends javax.swing.JFrame {
     }
 
     private void populateFields() {
-    if (empDetails != null) {
-        existingEmpID = empDetails.getEmpID(); // Store the original ID before editing
-        txt_empID.setText(empDetails.getEmpID());
-        txt_firstName.setText(empDetails.getFirstName());
-        txt_lastName.setText(empDetails.getLastName());
-        txt_birthdate.setText(empDetails.getBirthdate());
-        txt_address.setText(empDetails.getAddress());
-        txt_phoneNo.setText(empDetails.getPhoneNumber());
-        cbox_empStatus.setSelectedItem(empDetails.getEmployeeStatus());
-        cbox_position.setSelectedItem(empDetails.getPosition());
-        cbox_immSupervisor.setSelectedItem(empDetails.getImmediateSupervisor());
-    } else {
-        // Clear fields for Add mode
-        existingEmpID = null;
-        
-        // Auto-generate the next employee ID
-        int nextId = DatabaseHandler.getNextEmployeeId();
-        txt_empID.setText(String.valueOf(nextId));
-        
-        txt_firstName.setText("");
-        txt_lastName.setText("");
-        txt_birthdate.setText("");
-        txt_address.setText("");
-        txt_phoneNo.setText("");
-        cbox_empStatus.setSelectedIndex(0);
-        cbox_position.setSelectedIndex(0);
-        cbox_immSupervisor.setSelectedIndex(0);
-    }
+        if (empDetails != null) {
+            existingEmpID = empDetails.getEmpID(); // Store the original ID before editing
+            txt_empID.setText(empDetails.getEmpID());
+            txt_firstName.setText(empDetails.getFirstName());
+            txt_lastName.setText(empDetails.getLastName());
+            txt_birthdate.setText(empDetails.getBirthdate());
+            txt_address.setText(empDetails.getAddress());
+            txt_phoneNo.setText(empDetails.getPhoneNumber());
+            cbox_empStatus.setSelectedItem(empDetails.getEmployeeStatus());
+            cbox_position.setSelectedItem(empDetails.getPosition());
+            // Find supervisor display name by EmployeeID
+            String supervisorId = empDetails.getImmediateSupervisor();
+            String supervisorDisplay = "Select";
+            for (Map.Entry<String, String> entry : supervisorMap.entrySet()) {
+                if (supervisorId != null && supervisorId.equals(entry.getValue())) {
+                    supervisorDisplay = entry.getKey();
+                    break;
+                }
+            }
+            cbox_immSupervisor.setSelectedItem(supervisorDisplay);
+        } else {
+            // Clear fields for Add mode
+            existingEmpID = null;
+            // Auto-generate the next employee ID
+            int nextId = DatabaseHandler.getNextEmployeeId();
+            txt_empID.setText(String.valueOf(nextId));
+            txt_firstName.setText("");
+            txt_lastName.setText("");
+            txt_birthdate.setText("");
+            txt_address.setText("");
+            txt_phoneNo.setText("");
+            cbox_empStatus.setSelectedIndex(0);
+            cbox_position.setSelectedIndex(0);
+            cbox_immSupervisor.setSelectedIndex(0);
+        }
 }
     public EmpDetails getNewEmployeeData() {
         return newEmployeeData;
@@ -170,7 +195,8 @@ public class frm_EmployeesRecords2 extends javax.swing.JFrame {
 
         cbox_position.setModel(new javax.swing.DefaultComboBoxModel<>(new String[] { "Select", "HR Manager", "Account Team Leader", "HR Team Leader", "Payroll Manager", "HR Rank and File", "Payroll Rank and File", "Account Rank and File", "Payroll Team Leader", "Account Manager", "Chief Executive Officer", "Chief Operating Officer", "Chief Finance Officer", "Chief Marketing Officer", "IT Operations and Systems", "Accounting Head", "Sales & Marketing", "Supply Chain and Logistics", "Customer Service and Relations" }));
 
-        cbox_immSupervisor.setModel(new javax.swing.DefaultComboBoxModel<>(new String[] { "Select", "N/A", "Romualdez Fredrick", "Villanueva Andrea Mae", "Alvaro Roderick", "San Jose Brad", "Salcedo Anthony", "Mata Christian", "Lim Antonio", "De Leon Selena", "Garcia Manuel III", "Aquino Bianca Sofia", "Reyes Isabella" }));
+        // Supervisor dropdown is set in constructor, not here
+        // ...existing code...
 
         jLabel15.setIcon(new javax.swing.ImageIcon(getClass().getResource("/oop_motorph/img/img_profilepic.png"))); // NOI18N
 
@@ -403,41 +429,41 @@ public class frm_EmployeesRecords2 extends javax.swing.JFrame {
     String empID = txt_empID.getText().trim();
     String firstName = CSVHandler.capitalizeWords(txt_firstName.getText().trim(), 50);
     String lastName = CSVHandler.capitalizeWords(txt_lastName.getText().trim(), 50);
-   
+
     // Check if first name or last name contains a comma
     if (firstName.contains(",") || lastName.contains(",")) {
         JOptionPane.showMessageDialog(this, "First name and last name cannot contain commas.", "Invalid Input", JOptionPane.ERROR_MESSAGE);
         return;
     }
-    
+
     // Get birthdate and validate YYYY-MM-DD format
     String birthdate = txt_birthdate.getText().trim();
-    
+
     // Validate YYYY-MM-DD format
     if (!birthdate.matches("\\d{4}-\\d{2}-\\d{2}")) {
         JOptionPane.showMessageDialog(this, "Invalid birthdate format! Use YYYY-MM-DD (e.g., 2002-03-10).", "Error", JOptionPane.ERROR_MESSAGE);
         return;
     }
-    
+
     System.out.println("Formatted Birthdate: " + birthdate);
     String address = CSVHandler.validateAddress(txt_address.getText().trim());
 
     String phoneNo = txt_phoneNo.getText().trim();
-  //Validate Phone Number
+    //Validate Phone Number
     if (!CSVHandler.isValidPhone(phoneNo)) {
-    JOptionPane.showMessageDialog(this, "Phone number must contain only numbers and hyphens, and be up to 11 characters long.", "Invalid Input", JOptionPane.ERROR_MESSAGE);
-    return;
+        JOptionPane.showMessageDialog(this, "Phone number must contain only numbers and hyphens, and be up to 11 characters long.", "Invalid Input", JOptionPane.ERROR_MESSAGE);
+        return;
     }
- 
+
     String empStatus = (String) cbox_empStatus.getSelectedItem();
     String position = (String) cbox_position.getSelectedItem();
-    String immSupervisor = (String) cbox_immSupervisor.getSelectedItem();
+    String supervisorDisplay = (String) cbox_immSupervisor.getSelectedItem();
+    String supervisorEmpID = supervisorMap.get(supervisorDisplay); // This is the EmployeeID, not the name
 
     // Check for empty fields
     if (empID.isEmpty() || firstName.isEmpty() || lastName.isEmpty() || birthdate.isEmpty() || 
-        address.isEmpty() || phoneNo.isEmpty() || empStatus == null || empStatus == "Select" || position == null || position == "Select" 
-        || immSupervisor == null || immSupervisor == "Select") {
-        
+        address.isEmpty() || phoneNo.isEmpty() || empStatus == null || "Select".equals(empStatus) || position == null || "Select".equals(position)
+        || supervisorDisplay == null || "Select".equals(supervisorDisplay)) {
         JOptionPane.showMessageDialog(this, "All fields must be filled out!", "Missing Information", JOptionPane.ERROR_MESSAGE);
         return;
     }
@@ -460,9 +486,9 @@ public class frm_EmployeesRecords2 extends javax.swing.JFrame {
     }
 
     // Additional validation is done above for YYYY-MM-DD format
-    
 
-    EmpDetails updatedEmp = new EmpDetails(empID, firstName, lastName, birthdate, address, phoneNo, empStatus, position, immSupervisor);
+    // Use supervisorEmpID for database (pass EmployeeID, not name)
+    EmpDetails updatedEmp = new EmpDetails(empID, firstName, lastName, birthdate, address, phoneNo, empStatus, position, supervisorEmpID);
 
     // Assign correct existing employee ID
     String existingEmpID = (isEditMode && empDetails != null) ? empDetails.getEmpID() : null;
@@ -473,6 +499,7 @@ public class frm_EmployeesRecords2 extends javax.swing.JFrame {
             JOptionPane.showMessageDialog(this, "Employee ID already exists!", "Error", JOptionPane.ERROR_MESSAGE);
             return;
         }
+        // Ensure supervisor is saved as EmployeeID
         CSVHandler.updateEmployee(updatedEmp);
     } else {
         if (CSVHandler.employeeExists(empID, null)) {

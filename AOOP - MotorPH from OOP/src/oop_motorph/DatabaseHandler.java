@@ -783,19 +783,20 @@ public class DatabaseHandler {
     }
     
     private static Integer getSupervisorId(Connection conn, String supervisorName) throws SQLException {
-        if (supervisorName == null || supervisorName.trim().isEmpty() || supervisorName.equals("No supervisor")) {
+        if (supervisorName == null || supervisorName.trim().isEmpty() || supervisorName.equals("No supervisor") || supervisorName.equals("N/A")) {
             return null;
         }
-        
-        // Try to find supervisor by name
+        // If supervisorName is numeric, treat as EmployeeID
+        if (supervisorName.matches("\\d+")) {
+            return Integer.parseInt(supervisorName);
+        }
+        // Otherwise, fallback to name lookup (legacy)
         String[] names = supervisorName.split("\\s+");
         if (names.length < 2) {
             return null;
         }
-        
         String firstName = names[0];
         String lastName = names[names.length - 1];
-        
         String selectQuery = "SELECT EmployeeID FROM employees WHERE FirstName = ? AND LastName = ?";
         try (PreparedStatement stmt = conn.prepareStatement(selectQuery)) {
             stmt.setString(1, firstName);
@@ -806,7 +807,6 @@ public class DatabaseHandler {
                 }
             }
         }
-        
         return null; // No supervisor found
     }
 

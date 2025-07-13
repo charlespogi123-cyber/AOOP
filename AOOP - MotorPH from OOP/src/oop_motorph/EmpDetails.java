@@ -73,7 +73,7 @@ public class EmpDetails {
     public void setPosition(String position) { this.position = position; }
     
     public String getImmediateSupervisor() { return immSupervisor; }
-    public void setImmediateSupervisor(String immSupervisor) { this.address = immSupervisor; }
+    public void setImmediateSupervisor(String immSupervisor) { this.immSupervisor = immSupervisor; }
 
      // Override toString method for CSV output
         @Override
