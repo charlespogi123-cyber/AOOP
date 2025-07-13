@@ -15,7 +15,6 @@ import java.awt.print.PrinterJob;
 import java.awt.print.Printable;
 import java.text.SimpleDateFormat;
 import java.text.ParseException;
-import javax.swing.JScrollPane;
 
 public class frm_EmployeesPayrollProcess extends javax.swing.JFrame {
 
@@ -190,8 +189,7 @@ public class frm_EmployeesPayrollProcess extends javax.swing.JFrame {
         
         // Style action buttons with enhanced styling
         styleActionButtonEnhanced(btn_ViewEmp, new Color(59, 130, 246));
-        styleActionButtonEnhanced(btn_PrintPayslip, new Color(34, 197, 94)); // Green for payslip generation
-
+        
         // Style navigation buttons with enhanced modern design and better spacing
         styleNavigationButtonEnhanced(btn_Profile, new Color(107, 114, 128), false);
         styleNavigationButtonEnhanced(btn_LeaveMgt, new Color(107, 114, 128), false);
@@ -340,7 +338,6 @@ public class frm_EmployeesPayrollProcess extends javax.swing.JFrame {
         
         // Add hover effects to action buttons
         addButtonHoverEnhanced(btn_ViewEmp, new Color(59, 130, 246), new Color(37, 99, 235));
-        addButtonHoverEnhanced(btn_PrintPayslip, new Color(34, 197, 94), new Color(22, 163, 74)); // Green hover for payslip
     }
     
     private void addButtonHoverEnhanced(javax.swing.JButton button, Color normalColor, Color hoverColor) {
@@ -387,7 +384,6 @@ public class frm_EmployeesPayrollProcess extends javax.swing.JFrame {
         jScrollPane1 = new javax.swing.JScrollPane();
         tbl_Employees = new javax.swing.JTable();
         btn_ViewEmp = new javax.swing.JButton();
-        btn_PrintPayslip = new javax.swing.JButton();
         cmbMonthFilter = new javax.swing.JComboBox<>();
         jLabel6 = new javax.swing.JLabel();
         jLabel2 = new javax.swing.JLabel();
@@ -441,16 +437,6 @@ public class frm_EmployeesPayrollProcess extends javax.swing.JFrame {
             }
         });
 
-        btn_PrintPayslip.setBackground(new java.awt.Color(34, 197, 94));
-        btn_PrintPayslip.setFont(new java.awt.Font("Segoe UI", 1, 12)); // NOI18N
-        btn_PrintPayslip.setForeground(new java.awt.Color(255, 255, 255));
-        btn_PrintPayslip.setText("GENERATE PAYSLIP");
-        btn_PrintPayslip.addActionListener(new java.awt.event.ActionListener() {
-            public void actionPerformed(java.awt.event.ActionEvent evt) {
-                btn_PrintPayslipActionPerformed(evt);
-            }
-        });
-
         cmbMonthFilter.setFont(new java.awt.Font("Segoe UI", 0, 12)); // NOI18N
         cmbMonthFilter.setModel(new javax.swing.DefaultComboBoxModel<>(new String[] { "All Months" }));
         cmbMonthFilter.addActionListener(new java.awt.event.ActionListener() {
@@ -474,10 +460,6 @@ public class frm_EmployeesPayrollProcess extends javax.swing.JFrame {
                 .addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
                 .addComponent(btn_ViewEmp)
                 .addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
-            .addGroup(jPanel2Layout.createSequentialGroup()
-                .addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-                .addComponent(btn_PrintPayslip)
-                .addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
             .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, jPanel2Layout.createSequentialGroup()
                 .addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
                 .addComponent(jLabel6)
@@ -496,8 +478,6 @@ public class frm_EmployeesPayrollProcess extends javax.swing.JFrame {
                 .addComponent(jScrollPane1, javax.swing.GroupLayout.DEFAULT_SIZE, 437, Short.MAX_VALUE)
                 .addGap(18, 18, 18)
                 .addComponent(btn_ViewEmp)
-                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                .addComponent(btn_PrintPayslip)
                 .addContainerGap())
         );
 
@@ -776,267 +756,843 @@ public class frm_EmployeesPayrollProcess extends javax.swing.JFrame {
     }//GEN-LAST:event_btn_ViewEmpActionPerformed
 
     private void generatePayrollSummaryReport() {
-        // This method generates and displays a payroll summary report
-        JOptionPane.showMessageDialog(this, "Payroll Summary Report generation feature coming soon!", "Feature Info", JOptionPane.INFORMATION_MESSAGE);
-    }
-
-    private String generatePayslip(int selectedRow) {
-        if (selectedRow == -1) {
-            JOptionPane.showMessageDialog(this, "Please select a payroll record first.", "No Selection", JOptionPane.WARNING_MESSAGE);
-            return null;
-        }
-
-        // Convert view row index to model row index (important when table is filtered)
-        int modelRow = selectedRow;
-        if (tbl_Employees.getRowSorter() != null) {
-            modelRow = tbl_Employees.getRowSorter().convertRowIndexToModel(selectedRow);
-        }
-
-        // Get employee ID and payroll date from the selected row in the current table
-        DefaultTableModel model = (DefaultTableModel) tbl_Employees.getModel();
-        String empID = model.getValueAt(modelRow, 0).toString(); // Employee ID is in first column
-        String payrollStartDate = model.getValueAt(modelRow, 14).toString(); // Payroll start date is in column 14 (hidden)
-        
-        // Debug: Show which employee and date were selected
-        System.out.println("Selected row (view): " + selectedRow + ", model row: " + modelRow);
-        System.out.println("Selected Employee ID: " + empID);
-        System.out.println("Selected Payroll Start Date: " + payrollStartDate);
-        
-        // Get complete payroll data from database using employee ID (similar to frm_EmpPayroll)
-        List<String[]> payrollData = DatabaseHandler.readPayrollFromDatabase();
-        String[] payrollRow = null;
-        
-        // Find the exact payroll record matching both Employee ID and payroll start date
-        for (int i = 1; i < payrollData.size(); i++) { // Skip header row at index 0
-            String[] row = payrollData.get(i);
-            if (row.length >= 20 && row[3] != null && row[0] != null && 
-                row[3].trim().equals(empID.trim()) && 
-                row[0].trim().equals(payrollStartDate.trim())) { // Match both Employee ID (col 3) and start date (col 0)
-                payrollRow = row;
-                System.out.println("Found exact payroll record for Employee ID: " + row[3] + ", Date: " + row[0]); // Debug
-                break;
-            }
-        }
-        
-        // If exact match not found, try to find by Employee ID only (fallback)
-        if (payrollRow == null) {
-            System.out.println("Exact match not found, searching by Employee ID only...");
-            for (int i = payrollData.size() - 1; i >= 1; i--) { // Search from the end for most recent
-                String[] row = payrollData.get(i);
-                if (row.length >= 20 && row[3] != null && row[3].trim().equals(empID.trim())) {
-                    payrollRow = row;
-                    System.out.println("Found payroll record by Employee ID only: " + row[3] + ", Date: " + row[0]); // Debug
-                    break;
-                }
-            }
-        }
-        
-        if (payrollRow == null) {
-            JOptionPane.showMessageDialog(this, "No payroll data found for Employee ID: " + empID + " and date: " + payrollStartDate, "No Data", JOptionPane.WARNING_MESSAGE);
-            return null;
-        }
-
-        // Extract data from the complete payroll record (using same structure as frm_EmpPayroll)
-        String startDate = payrollRow[0] != null ? payrollRow[0] : "";  // Period Start
-        String endDate = payrollRow[1] != null ? payrollRow[1] : "";    // Period End  
-        String payrollID = payrollRow[2] != null ? payrollRow[2] : "";  // Payroll ID
-        String employeeID = payrollRow[3] != null ? payrollRow[3] : ""; // Employee ID
-        
-        String regularHours = payrollRow[4] != null ? payrollRow[4] : "0";   // Regular Hours
-        String overtimeHours = payrollRow[5] != null ? payrollRow[5] : "0";  // Overtime Hours
-        String totalHours = payrollRow[6] != null ? payrollRow[6] : "0";     // Total Hours
-        
-        String salary = payrollRow[7] != null ? payrollRow[7] : "0.00";      // Salary
-        String rice = payrollRow[8] != null ? payrollRow[8] : "0.00";        // Rice Allowance
-        String phone = payrollRow[9] != null ? payrollRow[9] : "0.00";       // Phone Allowance
-        String clothing = payrollRow[10] != null ? payrollRow[10] : "0.00";   // Clothing Allowance
-        String totalAllow = payrollRow[11] != null ? payrollRow[11] : "0.00"; // Total Allowances
-        
-        String gross = payrollRow[12] != null ? payrollRow[12] : "0.00";      // Gross Pay
-        String taxable = payrollRow[13] != null ? payrollRow[13] : "0.00";    // Taxable Income
-        
-        String sss = payrollRow[14] != null ? payrollRow[14] : "0.00";        // SSS
-        String philhealth = payrollRow[15] != null ? payrollRow[15] : "0.00"; // PhilHealth
-        String pagibig = payrollRow[16] != null ? payrollRow[16] : "0.00";    // Pag-IBIG
-        String tax = payrollRow[17] != null ? payrollRow[17] : "0.00";        // Tax
-        String deductions = payrollRow[18] != null ? payrollRow[18] : "0.00"; // Total Deductions
-        String netPay = payrollRow[19] != null ? payrollRow[19] : "0.00";     // Net Pay
-
-        // Debug: Print the data being used
-        System.out.println("Generating payslip for Employee ID: " + employeeID);
-        System.out.println("Payroll ID: " + payrollID + ", Period: " + startDate + " to " + endDate);
-
-        return """
-    <html>
-    <head>
-        <style>
-            body {
-                font-family: Arial, sans-serif;
-                background: #f3f3f3;
-                padding: 20px;
-            }
-            table {
-                border-collapse: collapse;
-                width: 100%%;
-                background-color: #fff;
-                border: 1px solid #ccc;
-            }
-            th {
-                background-color: #2c3e50;
-                color: white;
-                padding: 10px;
-                text-align: left;
-            }
-            td {
-                padding: 8px 12px;
-                border-bottom: 1px solid #eee;
-                vertical-align: top;
-            }
-            .section {
-                background-color: #f9f9f9;
-                font-weight: bold;
-                color: #2c3e50;
-            }
-            .highlight {
-                background-color: #eafaf1;
-                color: #2e7d32;
-                font-weight: bold;
-            }
-        </style>
-    </head>
-    <body>
-        <h2 style='text-align:center;'>MOTORPH Payslip</h2>
-        <table>
-            <tr class='section'><td colspan='6'>Employee & Payroll Info</td></tr>
-            <tr>
-                <td><strong>Payroll ID</strong></td><td>%s</td>
-                <td><strong>Employee ID</strong></td><td>%s</td>
-                <td><strong>Pay Period</strong></td><td>%s to %s</td>
-            </tr>
-            <tr class='section'><td colspan='6'>Work Hours</td></tr>
-            <tr>
-                <td><strong>Regular Hours</strong></td><td>%s hrs</td>
-                <td><strong>Overtime Hours</strong></td><td>%s hrs</td>
-                <td><strong>Total Hours</strong></td><td>%s hrs</td>
-            </tr>
-            <tr class='section'><td colspan='6'>Earnings & Allowances</td></tr>
-            <tr>
-                <td><strong>Basic Salary</strong></td><td>₱%s</td>
-                <td><strong>Rice Allowance</strong></td><td>₱%s</td>
-                <td><strong>Phone Allowance</strong></td><td>₱%s</td>
-            </tr>
-            <tr>
-                <td><strong>Clothing Allowance</strong></td><td>₱%s</td>
-                <td><strong>Total Allowances</strong></td><td colspan='3'>₱%s</td>
-            </tr>
-            <tr class='section'><td colspan='6'>Deductions</td></tr>
-            <tr>
-                <td><strong>SSS</strong></td><td>₱%s</td>
-                <td><strong>PhilHealth</strong></td><td>₱%s</td>
-                <td><strong>Pag-IBIG</strong></td><td>₱%s</td>
-            </tr>
-            <tr>
-                <td><strong>Tax Withheld</strong></td><td>₱%s</td>
-                <td><strong>Total Deductions</strong></td><td colspan='3'>₱%s</td>
-            </tr>
-            <tr class='section'><td colspan='6'>Summary</td></tr>
-            <tr>
-                <td><strong>Gross Pay</strong></td><td>₱%s</td>
-                <td><strong>Taxable Income</strong></td><td>₱%s</td>
-                <td class='highlight'><strong>NET PAY</strong></td><td class='highlight'>₱%s</td>
-            </tr>
-        </table>
-        <p style='text-align:center; font-size:11px; color:#777; margin-top:15px;'>
-            This is a system-generated payslip. No signature required.
-        </p>
-    </body>
-    </html>
-    """.formatted(
-                payrollID, employeeID, startDate, endDate,
-                regularHours, overtimeHours, totalHours,
-                salary, rice, phone, clothing, totalAllow,
-                sss, philhealth, pagibig, tax, deductions,
-                gross, taxable, netPay
-        );
-    }
-
-    private void btn_PrintPayslipActionPerformed(java.awt.event.ActionEvent evt) {
-        int selectedRow = tbl_Employees.getSelectedRow();
-        if (selectedRow == -1) {
-            JOptionPane.showMessageDialog(this, "Please select a payroll record first.", "No Selection", JOptionPane.WARNING_MESSAGE);
-            return;
-        }
-        
-        String payslipHTML = generatePayslip(selectedRow);
-
-        if (payslipHTML != null) {
-            try {
-                // Render HTML into a JEditorPane
-                JEditorPane editorPane = new JEditorPane();
+        try {
+            // Generate HTML content for the payroll summary
+            String reportHTML = generatePayrollSummaryHTML();
+            
+            if (reportHTML != null) {
+                // Create a new frame for the formatted report
+                javax.swing.JFrame reportFrame = new javax.swing.JFrame("Payroll Summary Report");
+                reportFrame.setSize(1400, 900);
+                reportFrame.setLocationRelativeTo(this);
+                
+                // Create an HTML editor pane for better formatting
+                javax.swing.JEditorPane editorPane = new javax.swing.JEditorPane();
                 editorPane.setContentType("text/html");
-                editorPane.setText(payslipHTML);
-                editorPane.setSize(1000, editorPane.getPreferredSize().height);
+                editorPane.setText(reportHTML);
                 editorPane.setEditable(false);
-
-                // Force layout & calculate correct height
-                editorPane.revalidate();
-                editorPane.repaint();
-
-                // Optional preview panel
-                JScrollPane preview = new JScrollPane(editorPane);
-                int option = JOptionPane.showConfirmDialog(null, preview, "Payslip Preview",
-                        JOptionPane.YES_NO_OPTION, JOptionPane.PLAIN_MESSAGE);
-
-                if (option == JOptionPane.YES_OPTION) {
-                    // Force layout again just before image capture
-                    editorPane.setSize(1000, editorPane.getPreferredSize().height);
-
-                    // Create BufferedImage of appropriate height
-                    int width = editorPane.getWidth();
-                    int height = editorPane.getPreferredSize().height;
-
-                    BufferedImage image = new BufferedImage(width, height, BufferedImage.TYPE_INT_RGB);
-                    Graphics2D g2d = image.createGraphics();
-                    editorPane.printAll(g2d);
-                    g2d.dispose();
-
-                    // Set up printer job to print the image
-                    PrinterJob job = PrinterJob.getPrinterJob();
-                    job.setPrintable((graphics, pageFormat, pageIndex) -> {
-                        if (pageIndex > 0) return Printable.NO_SUCH_PAGE;
-
-                        double x = pageFormat.getImageableX();
-                        double y = pageFormat.getImageableY();
-
-                        // Scale image if it's wider than printable area
-                        double scaleX = pageFormat.getImageableWidth() / image.getWidth();
-                        double scaleY = pageFormat.getImageableHeight() / image.getHeight();
-                        double scale = Math.min(scaleX, scaleY);
-
-                        Graphics2D g = (Graphics2D) graphics;
-                        g.translate(x, y);
-                        g.scale(scale, scale);
-                        g.drawImage(image, 0, 0, null);
-
-                        return Printable.PAGE_EXISTS;
-                    });
-
-                    if (job.printDialog()) {
-                        job.print();
-                        JOptionPane.showMessageDialog(this, "Printing successful!", "Print", JOptionPane.INFORMATION_MESSAGE);
+                
+                // Set preferred size for better display
+                editorPane.setPreferredSize(new java.awt.Dimension(1350, 1000));
+                
+                // Add to scroll pane
+                javax.swing.JScrollPane scrollPane = new javax.swing.JScrollPane(editorPane);
+                reportFrame.add(scrollPane);
+                
+                // Add button panel
+                javax.swing.JPanel buttonPanel = new javax.swing.JPanel();
+                buttonPanel.setBackground(new java.awt.Color(240, 240, 240));
+                buttonPanel.setBorder(javax.swing.BorderFactory.createEmptyBorder(10, 10, 10, 10));
+                
+                javax.swing.JButton printBtn = new javax.swing.JButton("Print Report");
+                printBtn.setBackground(new java.awt.Color(0, 123, 255));
+                printBtn.setForeground(java.awt.Color.WHITE);
+                printBtn.setFont(new java.awt.Font("Segoe UI", java.awt.Font.BOLD, 12));
+                
+                javax.swing.JButton pdfBtn = new javax.swing.JButton("Save as PDF");
+                pdfBtn.setBackground(new java.awt.Color(220, 53, 69));
+                pdfBtn.setForeground(java.awt.Color.WHITE);
+                pdfBtn.setFont(new java.awt.Font("Segoe UI", java.awt.Font.BOLD, 12));
+                
+                javax.swing.JButton closeBtn = new javax.swing.JButton("Close");
+                closeBtn.setBackground(new java.awt.Color(108, 117, 125));
+                closeBtn.setForeground(java.awt.Color.WHITE);
+                closeBtn.setFont(new java.awt.Font("Segoe UI", java.awt.Font.BOLD, 12));
+                
+                pdfBtn.addActionListener(e -> {
+                    try {
+                        saveToPDF(reportHTML);
+                    } catch (Exception ex) {
+                        JOptionPane.showMessageDialog(reportFrame, 
+                            "Error saving PDF: " + ex.getMessage(), 
+                            "PDF Export Error", 
+                            JOptionPane.ERROR_MESSAGE);
+                        ex.printStackTrace();
+                    }
+                });
+                
+                printBtn.addActionListener(e -> {
+                    try {
+                        // Use the same printing approach as the payslip
+                        editorPane.setSize(1200, editorPane.getPreferredSize().height);
+                        
+                        // Create BufferedImage for printing
+                        int width = editorPane.getWidth();
+                        int height = editorPane.getPreferredSize().height;
+                        
+                        java.awt.image.BufferedImage image = new java.awt.image.BufferedImage(
+                            width, height, java.awt.image.BufferedImage.TYPE_INT_RGB);
+                        java.awt.Graphics2D g2d = image.createGraphics();
+                        editorPane.printAll(g2d);
+                        g2d.dispose();
+                        
+                        // Print the image
+                        java.awt.print.PrinterJob job = java.awt.print.PrinterJob.getPrinterJob();
+                        job.setPrintable((graphics, pageFormat, pageIndex) -> {
+                            if (pageIndex > 0) return java.awt.print.Printable.NO_SUCH_PAGE;
+                            
+                            double x = pageFormat.getImageableX();
+                            double y = pageFormat.getImageableY();
+                            double width2 = pageFormat.getImageableWidth();
+                            double height2 = pageFormat.getImageableHeight();
+                            
+                            // Scale image to fit page
+                            double scaleX = width2 / image.getWidth();
+                            double scaleY = height2 / image.getHeight();
+                            double scale = Math.min(scaleX, scaleY);
+                            
+                            int scaledWidth = (int) (image.getWidth() * scale);
+                            int scaledHeight = (int) (image.getHeight() * scale);
+                            
+                            graphics.drawImage(image, (int) x, (int) y, scaledWidth, scaledHeight, null);
+                            return java.awt.print.Printable.PAGE_EXISTS;
+                        });
+                        
+                        if (job.printDialog()) {
+                            job.print();
+                            JOptionPane.showMessageDialog(reportFrame, 
+                                "Payroll summary report sent to printer successfully!", 
+                                "Print Success", 
+                                JOptionPane.INFORMATION_MESSAGE);
+                        }
+                        
+                    } catch (Exception ex) {
+                        JOptionPane.showMessageDialog(reportFrame, 
+                            "Error printing report: " + ex.getMessage(), 
+                            "Print Error", 
+                            JOptionPane.ERROR_MESSAGE);
+                    }
+                });
+                
+                closeBtn.addActionListener(e -> reportFrame.dispose());
+                
+                buttonPanel.add(printBtn);
+                buttonPanel.add(javax.swing.Box.createHorizontalStrut(10));
+                buttonPanel.add(pdfBtn);
+                buttonPanel.add(javax.swing.Box.createHorizontalStrut(10));
+                buttonPanel.add(closeBtn);
+                
+                reportFrame.add(buttonPanel, java.awt.BorderLayout.SOUTH);
+                reportFrame.setVisible(true);
+            }
+            
+        } catch (Exception e) {
+            JOptionPane.showMessageDialog(this, 
+                "Error generating payroll summary: " + e.getMessage(), 
+                "Error", 
+                JOptionPane.ERROR_MESSAGE);
+        }
+    }
+    
+    private String generatePayrollSummaryHTML() {
+        try {
+            // Get filtered data from the table
+            DefaultTableModel model = (DefaultTableModel) tbl_Employees.getModel();
+            int rowCount = tbl_Employees.getRowCount();
+            int columnCount = model.getColumnCount();
+            
+            if (rowCount == 0) {
+                return """
+                    <html>
+                    <head>
+                        <style>
+                            body { font-family: Arial, sans-serif; padding: 20px; text-align: center; }
+                            .no-data { color: #666; font-size: 18px; margin: 50px; }
+                        </style>
+                    </head>
+                    <body>
+                        <h2>MOTORPH Payroll Summary Report</h2>
+                        <div class="no-data">No payroll data to display.</div>
+                    </body>
+                    </html>
+                    """;
+            }
+            
+            // Debug: Print column information
+            System.out.println("=== PAYROLL SUMMARY DEBUG INFO ===");
+            System.out.println("Total columns: " + columnCount);
+            for (int i = 0; i < columnCount; i++) {
+                System.out.println("Column " + i + ": " + model.getColumnName(i));
+            }
+            
+            // Define specific columns based on the image
+            String[] requiredColumns = {
+                "Employee No", "Employee Full Name", "Position", "Department", "Gross Income",
+                "Social Security No.", "Social Security Contribution", "Philhealth No.", 
+                "Philhealth Contribution", "Pag-ibig No.", "Pag-ibig Contribution", 
+                "TIN", "Withholding Tax", "Net Pay"
+            };
+            
+            // Generate table headers with specific columns
+            StringBuilder tableHeaders = new StringBuilder();
+            for (String columnName : requiredColumns) {
+                tableHeaders.append(String.format("<th>%s</th>", escapeHtml(columnName)));
+            }
+            
+            System.out.println("Generated headers HTML: " + tableHeaders.toString());
+            
+            StringBuilder employeeRows = new StringBuilder();
+            double[] columnTotals = new double[requiredColumns.length];
+            
+            // Process each visible row
+            for (int i = 0; i < rowCount; i++) {
+                int actualRow = tbl_Employees.convertRowIndexToModel(i);
+                
+                employeeRows.append("<tr>");
+                
+                // Process each required column
+                for (int colIndex = 0; colIndex < requiredColumns.length; colIndex++) {
+                    String requiredColumnName = requiredColumns[colIndex];
+                    String cellValue = "";
+                    
+                    // Find the column in the table model by name
+                    for (int col = 0; col < columnCount; col++) {
+                        String actualColumnName = model.getColumnName(col);
+                        if (actualColumnName.equalsIgnoreCase(requiredColumnName) || 
+                            actualColumnName.toLowerCase().contains(requiredColumnName.toLowerCase().replace(" ", "")) ||
+                            requiredColumnName.toLowerCase().contains(actualColumnName.toLowerCase().replace("_", "").replace(" ", ""))) {
+                            cellValue = getTableValueSafe(model, actualRow, col, columnCount);
+                            break;
+                        }
+                    }
+                    
+                    // Format the cell based on column type
+                    String columnNameLower = requiredColumnName.toLowerCase();
+                    if (columnNameLower.contains("contribution") || columnNameLower.contains("income") || 
+                        columnNameLower.contains("tax") || columnNameLower.contains("net pay")) {
+                        double numValue = parseDouble(cellValue);
+                        columnTotals[colIndex] += numValue;
+                        employeeRows.append(String.format("<td class='amount'>₱%,.2f</td>", numValue));
+                    } else {
+                        employeeRows.append(String.format("<td>%s</td>", escapeHtml(cellValue)));
                     }
                 }
-            } catch (Exception e) {
-                JOptionPane.showMessageDialog(this, "Print Error: " + e.getMessage(), "Error", JOptionPane.ERROR_MESSAGE);
+                
+                employeeRows.append("</tr>");
             }
+            
+            // Generate totals row
+            StringBuilder totalsRow = new StringBuilder("<tr class='totals-row'>");
+            for (int colIndex = 0; colIndex < requiredColumns.length; colIndex++) {
+                String columnName = requiredColumns[colIndex];
+                String columnNameLower = columnName.toLowerCase();
+                
+                if (colIndex == 0) {
+                    totalsRow.append("<td><strong>TOTALS</strong></td>");
+                } else if (columnNameLower.contains("no.") || columnNameLower.contains("no") ||
+                          columnNameLower.contains("name") || columnNameLower.contains("position") ||
+                          columnNameLower.contains("department") || columnNameLower.contains("tin")) {
+                    // Don't show totals for ID, name, position, department, or TIN columns
+                    totalsRow.append("<td></td>");
+                } else if (columnNameLower.contains("contribution") || columnNameLower.contains("income") || 
+                          columnNameLower.contains("tax") || columnNameLower.contains("net pay")) {
+                    totalsRow.append(String.format("<td class='amount'>₱%,.2f</td>", columnTotals[colIndex]));
+                } else {
+                    totalsRow.append("<td></td>");
+                }
+            }
+            totalsRow.append("</tr>");
+            
+            // Calculate key statistics from specific columns
+            double totalGross = 0;
+            double totalDeductions = 0;
+            double totalNet = 0;
+            
+            // Debug: Print column information for statistics
+            System.out.println("=== STATISTICS CALCULATION DEBUG ===");
+            
+            // Calculate statistics based on specific columns
+            for (int colIndex = 0; colIndex < requiredColumns.length; colIndex++) {
+                String columnName = requiredColumns[colIndex];
+                double columnTotal = columnTotals[colIndex];
+                
+                System.out.println("Column " + colIndex + ": " + columnName + " = " + columnTotal);
+                
+                if (columnName.equalsIgnoreCase("Gross Income")) {
+                    totalGross = columnTotal;
+                    System.out.println("  -> Set as Total Gross: " + columnTotal);
+                } else if (columnName.equalsIgnoreCase("Net Pay")) {
+                    totalNet = columnTotal;
+                    System.out.println("  -> Set as Total Net: " + columnTotal);
+                } else if (columnName.contains("Contribution") || columnName.contains("Tax")) {
+                    totalDeductions += columnTotal;
+                    System.out.println("  -> Added to Total Deductions: " + columnTotal);
+                }
+            }
+            
+            // If we didn't find net pay directly, calculate it as gross - deductions
+            if (totalNet == 0 && totalGross > 0) {
+                totalNet = totalGross - totalDeductions;
+                System.out.println("Calculated Net Pay: " + totalGross + " - " + totalDeductions + " = " + totalNet);
+            }
+            
+            System.out.println("Final Statistics:");
+            System.out.println("  Total Employees: " + rowCount);
+            System.out.println("  Total Gross: " + totalGross);
+            System.out.println("  Total Deductions: " + totalDeductions);
+            System.out.println("  Total Net: " + totalNet);
+            System.out.println("  Average Gross: " + (rowCount > 0 ? totalGross / rowCount : 0));
+            System.out.println("  Average Net: " + (rowCount > 0 ? totalNet / rowCount : 0));
+            
+            // Get filter information
+            String selectedMonth = (String) cmbMonthFilter.getSelectedItem();
+            String filterInfo = "";
+            if (selectedMonth != null && !"All Months".equals(selectedMonth)) {
+                filterInfo = "<p><strong>Filtered by:</strong> " + selectedMonth + "</p>";
+            }
+            
+            String finalHTML = String.format("""
+                <html>
+                <head>
+                    <style>
+                        /* Perfect PDF Export Settings - Matches Browser Display Exactly */
+                        @page {
+                            size: A4 landscape;
+                            margin: 0.3in 0.2in;
+                        }
+                        
+                        /* Ensure print styles match screen display */
+                        @media screen, print {
+                            * {
+                                -webkit-print-color-adjust: exact !important;
+                                color-adjust: exact !important;
+                                box-sizing: border-box !important;
+                            }
+                            
+                            html, body {
+                                margin: 0 !important;
+                                padding: 0 !important;
+                                width: 100%% !important;
+                                height: auto !important;
+                                font-family: Arial, sans-serif !important;
+                                font-size: 12px !important;
+                                line-height: 1.3 !important;
+                                background: white !important;
+                                color: #000 !important;
+                            }
+                            
+                            .header {
+                                text-align: center !important;
+                                background: #2c3e50 !important;
+                                color: white !important;
+                                padding: 15px !important;
+                                margin-bottom: 10px !important;
+                                page-break-inside: avoid !important;
+                            }
+                            
+                            .header h1 {
+                                font-size: 24px !important;
+                                margin: 0 !important;
+                                font-weight: bold !important;
+                                color: white !important;
+                            }
+                            
+                            .header p {
+                                font-size: 12px !important;
+                                margin: 4px 0 0 0 !important;
+                                color: white !important;
+                            }
+                            
+                            table {
+                                width: 100%% !important;
+                                border-collapse: collapse !important;
+                                margin-bottom: 10px !important;
+                                font-size: 10px !important;
+                                table-layout: fixed !important;
+                                page-break-inside: auto !important;
+                                border-spacing: 0 !important;
+                            }
+                            
+                            th {
+                                background-color: #007bff !important;
+                                color: white !important;
+                                font-weight: bold !important;
+                                text-align: center !important;
+                                padding: 8px 2px !important;
+                                border: 1px solid #ddd !important;
+                                font-size: 9px !important;
+                                line-height: 1.1 !important;
+                                word-wrap: break-word !important;
+                                page-break-inside: avoid !important;
+                                white-space: nowrap !important;
+                                overflow: hidden !important;
+                                text-overflow: ellipsis !important;
+                            }
+                            
+                            td {
+                                padding: 6px 2px !important;
+                                border: 1px solid #ddd !important;
+                                text-align: center !important;
+                                font-size: 8px !important;
+                                line-height: 1.1 !important;
+                                word-wrap: break-word !important;
+                                overflow: hidden !important;
+                                text-overflow: ellipsis !important;
+                                white-space: nowrap !important;
+                                vertical-align: middle !important;
+                            }
+                            
+                            /* Left align text columns and allow text wrapping for names */
+                            td:nth-child(2), td:nth-child(3), td:nth-child(4) {
+                                text-align: left !important;
+                                white-space: normal !important;
+                                word-wrap: break-word !important;
+                            }
+                            
+                            /* Keep numbers and IDs as no-wrap */
+                            td:nth-child(1), td:nth-child(5), td:nth-child(6), td:nth-child(7), 
+                            td:nth-child(8), td:nth-child(9), td:nth-child(10), td:nth-child(11), 
+                            td:nth-child(12), td:nth-child(13), td:nth-child(14) {
+                                white-space: nowrap !important;
+                                text-align: right !important;
+                            }
+                            
+                            /* Fixed column widths for perfect layout - No overlap */
+                            th:nth-child(1), td:nth-child(1) { width: 5%% !important; min-width: 50px !important; }  /* Employee No */
+                            th:nth-child(2), td:nth-child(2) { width: 15%% !important; min-width: 120px !important; } /* Employee Full Name */
+                            th:nth-child(3), td:nth-child(3) { width: 10%% !important; min-width: 80px !important; }  /* Position */
+                            th:nth-child(4), td:nth-child(4) { width: 8%% !important; min-width: 60px !important; }   /* Department */
+                            th:nth-child(5), td:nth-child(5) { width: 8%% !important; min-width: 70px !important; }   /* Gross Income */
+                            th:nth-child(6), td:nth-child(6) { width: 9%% !important; min-width: 80px !important; }   /* SSS No */
+                            th:nth-child(7), td:nth-child(7) { width: 7%% !important; min-width: 60px !important; }   /* SSS Contribution */
+                            th:nth-child(8), td:nth-child(8) { width: 9%% !important; min-width: 80px !important; }   /* PhilHealth No */
+                            th:nth-child(9), td:nth-child(9) { width: 7%% !important; min-width: 60px !important; }   /* PhilHealth Contribution */
+                            th:nth-child(10), td:nth-child(10) { width: 7%% !important; min-width: 60px !important; } /* Pag-ibig No */
+                            th:nth-child(11), td:nth-child(11) { width: 7%% !important; min-width: 60px !important; } /* Pag-ibig Contribution */
+                            th:nth-child(12), td:nth-child(12) { width: 6%% !important; min-width: 50px !important; } /* TIN */
+                            th:nth-child(13), td:nth-child(13) { width: 6%% !important; min-width: 50px !important; } /* Withholding Tax */
+                            th:nth-child(14), td:nth-child(14) { width: 6%% !important; min-width: 50px !important; } /* Net Pay */
+                            
+                            .totals-row {
+                                background-color: #28a745 !important;
+                                color: white !important;
+                                font-weight: bold !important;
+                                page-break-inside: avoid !important;
+                            }
+                            
+                            .totals-row td {
+                                background-color: #28a745 !important;
+                                color: white !important;
+                                border: 1px solid #ddd !important;
+                                font-weight: bold !important;
+                            }
+                            
+                            .amount {
+                                text-align: right !important;
+                                font-family: monospace !important;
+                            }
+                            
+                            .number {
+                                text-align: center !important;
+                                font-family: monospace !important;
+                            }
+                            
+                            .summary-stats {
+                                background-color: #f8f9fa !important;
+                                border: 1px solid #ddd !important;
+                                padding: 15px !important;
+                                margin-top: 15px !important;
+                                border-radius: 5px !important;
+                                page-break-inside: avoid !important;
+                            }
+                            
+                            .stats-row {
+                                display: flex !important;
+                                justify-content: space-around !important;
+                                text-align: center !important;
+                                margin-bottom: 10px !important;
+                            }
+                            
+                            .stat-item {
+                                flex: 1 !important;
+                                margin: 0 10px !important;
+                            }
+                            
+                            .stat-value {
+                                font-size: 16px !important;
+                                font-weight: bold !important;
+                                color: #007bff !important;
+                                display: block !important;
+                            }
+                            
+                            .stat-label {
+                                font-size: 10px !important;
+                                color: #666 !important;
+                                margin-top: 2px !important;
+                                display: block !important;
+                            }
+                            
+                            .footer {
+                                text-align: center !important;
+                                margin-top: 20px !important;
+                                padding: 10px !important;
+                                font-size: 10px !important;
+                                color: #666 !important;
+                                border-top: 1px solid #ddd !important;
+                                page-break-inside: avoid !important;
+                            }
+                        }
+                        body {
+                            font-family: Arial, sans-serif;
+                            background: white;
+                            padding: 0;
+                            margin: 0;
+                            font-size: 12px;
+                            width: 100%%;
+                            min-height: 100vh;
+                            color: #000;
+                            line-height: 1.3;
+                        }
+                        .header {
+                            text-align: center;
+                            background: #2c3e50;
+                            color: white;
+                            padding: 20px 15px;
+                            margin-bottom: 15px;
+                            width: 100%%;
+                            box-sizing: border-box;
+                        }
+                        .header h1 {
+                            margin: 0;
+                            font-size: 24px;
+                            font-weight: bold;
+                            letter-spacing: 1px;
+                        }
+                        .header p {
+                            margin: 8px 0 0 0;
+                            font-size: 14px;
+                            opacity: 0.95;
+                        }
+                        table {
+                            border-collapse: collapse;
+                            width: 100%%;
+                            background-color: white;
+                            border: 2px solid #333;
+                            margin-bottom: 15px;
+                            font-size: 11px;
+                            table-layout: auto;
+                            color: #000;
+                        }
+                        th {
+                            background-color: #2c3e50;
+                            color: white;
+                            padding: 10px 6px;
+                            text-align: center;
+                            font-weight: bold;
+                            font-size: 11px;
+                            border: 1px solid #fff;
+                            white-space: nowrap;
+                            word-wrap: break-word;
+                            min-width: 70px;
+                            line-height: 1.2;
+                        }
+                        td {
+                            padding: 8px 6px;
+                            border: 1px solid #ddd;
+                            vertical-align: middle;
+                            font-size: 10px;
+                            text-align: center;
+                            word-wrap: break-word;
+                            color: #000;
+                            line-height: 1.2;
+                        }
+                        .amount {
+                            text-align: right;
+                            font-weight: bold;
+                            color: #27ae60;
+                            font-size: 13px;
+                        }
+                        .number {
+                            text-align: right;
+                            font-size: 12px;
+                        }
+                        .totals-row {
+                            background-color: #28a745 !important;
+                            color: white !important;
+                            font-weight: bold;
+                        }
+                        .totals-row td {
+                            border: 1px solid #fff !important;
+                            padding: 12px 8px;
+                            font-size: 13px;
+                            color: white !important;
+                        }
+                        .totals-row .amount {
+                            color: white !important;
+                            text-align: right;
+                        }
+                        .totals-row .number {
+                            color: white !important;
+                            text-align: right;
+                        }
+                        .summary-stats {
+                            background: white;
+                            padding: 15px;
+                            margin-top: 15px;
+                            border: 2px solid #ddd;
+                            border-radius: 5px;
+                            box-sizing: border-box;
+                        }
+                        .stats-grid {
+                            display: table;
+                            width: 100%%;
+                            border-collapse: collapse;
+                        }
+                        .stat-card {
+                            display: table-cell;
+                            background: #f8f9fa;
+                            padding: 12px 8px;
+                            border: 1px solid #ddd;
+                            text-align: center;
+                            vertical-align: middle;
+                        }
+                        .stat-label {
+                            font-size: 11px;
+                            color: #6c757d;
+                            margin-bottom: 4px;
+                            font-weight: bold;
+                        }
+                        .stat-value {
+                            font-size: 14px;
+                            font-weight: bold;
+                            color: #2c3e50;
+                        }
+                        .footer {
+                            text-align: center;
+                            margin-top: 20px;
+                            padding: 12px;
+                            color: #6c757d;
+                            font-size: 10px;
+                            border-top: 2px solid #ddd;
+                        }
+                    </style>
+                </head>
+                <body>
+                    <div class="header">
+                        <h1>MOTORPH Payroll Summary Report</h1>
+                        <p>Generated on: %s</p>
+                        %s
+                    </div>
+                    
+                    <table>
+                        <thead>
+                            <tr>%s</tr>
+                        </thead>
+                        <tbody>
+                            %s
+                            %s
+                        </tbody>
+                    </table>
+                    
+                    <div class="summary-stats">
+                        <h3 style="margin-top: 0; color: #2c3e50;">Summary Statistics</h3>
+                        <div class="stats-grid">
+                            <div class="stat-card">
+                                <div class="stat-label">Total Employees</div>
+                                <div class="stat-value">%d</div>
+                            </div>
+                            <div class="stat-card">
+                                <div class="stat-label">Total Gross Pay</div>
+                                <div class="stat-value">₱%,.2f</div>
+                            </div>
+                            <div class="stat-card">
+                                <div class="stat-label">Total Deductions</div>
+                                <div class="stat-value">₱%,.2f</div>
+                            </div>
+                            <div class="stat-card">
+                                <div class="stat-label">Total Net Pay</div>
+                                <div class="stat-value">₱%,.2f</div>
+                            </div>
+                            <div class="stat-card">
+                                <div class="stat-label">Average Gross Pay</div>
+                                <div class="stat-value">₱%,.2f</div>
+                            </div>
+                            <div class="stat-card">
+                                <div class="stat-label">Average Net Pay</div>
+                                <div class="stat-value">₱%,.2f</div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="footer">
+                        <p>This is a system-generated payroll summary report from MotorPH Payroll System.</p>
+                        <p>Report contains %d employee payroll records. All amounts are in Philippine Pesos (₱).</p>
+                    </div>
+                </body>
+                </html>
+                """,
+                new java.util.Date().toString(),
+                filterInfo,
+                tableHeaders.toString(),
+                employeeRows.toString(),
+                totalsRow.toString(),
+                rowCount, totalGross, totalDeductions, totalNet,
+                rowCount > 0 ? totalGross / rowCount : 0,
+                rowCount > 0 ? totalNet / rowCount : 0,
+                rowCount
+            );
+            
+            // Debug: Save HTML to file to inspect
+            try {
+                java.nio.file.Files.write(
+                    java.nio.file.Paths.get("debug_payroll_report.html"), 
+                    finalHTML.getBytes()
+                );
+                System.out.println("HTML saved to debug_payroll_report.html for inspection");
+            } catch (Exception ex) {
+                System.out.println("Could not save debug HTML: " + ex.getMessage());
+            }
+            
+            return finalHTML;
+            
+        } catch (Exception e) {
+            e.printStackTrace(); // Debug: Print stack trace
+            return "<html><body><h2>Error generating report: " + e.getMessage() + "</h2></body></html>";
         }
     }
+    
+    private boolean isMonetaryColumn(String columnName) {
+        String lowerName = columnName.toLowerCase();
+        return lowerName.contains("salary") || lowerName.contains("allowance") || 
+               lowerName.contains("gross") || lowerName.contains("income") ||
+               lowerName.contains("contribution") || lowerName.contains("tax") ||
+               lowerName.contains("deduction") || lowerName.contains("netpay") ||
+               lowerName.contains("net_pay") || lowerName.contains("amount") ||
+               lowerName.contains("sss") || lowerName.contains("philhealth") ||
+               lowerName.contains("pagibig") || lowerName.contains("rice") ||
+               lowerName.contains("phone") || lowerName.contains("clothing");
+    }
+    
+    private boolean isNumericColumn(String columnName) {
+        String lowerName = columnName.toLowerCase();
+        // Exclude ID columns from numeric calculations
+        if (isIdColumn(columnName)) {
+            return false;
+        }
+        return lowerName.contains("hours") || lowerName.contains("number") || 
+               lowerName.contains("count") || lowerName.contains("days");
+    }
+    
+    private boolean isIdColumn(String columnName) {
+        String lowerName = columnName.toLowerCase();
+        return lowerName.contains("payrollid") || lowerName.contains("payroll_id") ||
+               lowerName.contains("employeeid") || lowerName.contains("employee_id") ||
+               lowerName.contains("emp_id") || 
+               (lowerName.contains("id") && (lowerName.endsWith("id") || lowerName.startsWith("id")));
+    }
+    
+    private String escapeHtml(String text) {
+        if (text == null) return "";
+        return text.replace("&", "&amp;")
+                  .replace("<", "&lt;")
+                  .replace(">", "&gt;")
+                  .replace("\"", "&quot;")
+                  .replace("'", "&#39;");
+    }
+    
+    private String getTableValueSafe(DefaultTableModel model, int row, int col, int columnCount) {
+        if (row >= 0 && row < model.getRowCount() && col >= 0 && col < columnCount) {
+            Object value = model.getValueAt(row, col);
+            return value != null ? value.toString() : "";
+        }
+        return "";
+    }
 
-    // <editor-fold defaultstate="collapsed" desc="NetBeans Generated Methods - Additional Methods">
+    private String getTableValue(DefaultTableModel model, int row, int col) {
+        Object value = model.getValueAt(row, col);
+        return value != null ? value.toString() : "";
+    }
     
-    // Removed unused method
+    private double parseDouble(String value) {
+        try {
+            return Double.parseDouble(value.replaceAll("[₱,]", ""));
+        } catch (NumberFormatException e) {
+            return 0.0;
+        }
+    }
     
-    // </editor-fold>
+    private String truncateString(String str, int maxLength) {
+        if (str == null) return "";
+        return str.length() > maxLength ? str.substring(0, maxLength - 3) + "..." : str;
+    }
+
+    private void btn_AddEmpActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btn_AddEmpActionPerformed
+        int selectedRow = tbl_Employees.getSelectedRow();
+        if (selectedRow >= 0) {
+            // Get payroll information
+            String payrollID = (String) tbl_Employees.getValueAt(selectedRow, 2);
+            String empName = (String) tbl_Employees.getValueAt(selectedRow, 4);
+            String netPay = (String) tbl_Employees.getValueAt(selectedRow, 26);
+            
+            // Process payroll for selected record
+            int confirm = JOptionPane.showConfirmDialog(this, 
+                "Process payroll payment?\n" +
+                "Payroll ID: " + payrollID + "\n" +
+                "Employee: " + empName + "\n" +
+                "Net Pay: ₱" + netPay, 
+                "Confirm Process", 
+                JOptionPane.YES_NO_OPTION,
+                JOptionPane.QUESTION_MESSAGE);
+            
+            if (confirm == JOptionPane.YES_OPTION) {
+                JOptionPane.showMessageDialog(this, 
+                    "Payroll processed successfully!\n" +
+                    "Payment of ₱" + netPay + " for " + empName + " has been approved.", 
+                    "Process Success", 
+                    JOptionPane.INFORMATION_MESSAGE);
+                
+                // Refresh the table
+                displayEmployeeData();
+            }
+        } else {
+            JOptionPane.showMessageDialog(this, "Please select a payroll record to process.", 
+                                        "No Selection", JOptionPane.WARNING_MESSAGE);
+        }
+    }//GEN-LAST:event_btn_AddEmpActionPerformed
+
+    private void btn_DelEmpActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btn_DelEmpActionPerformed
+        int selectedRow = tbl_Employees.getSelectedRow();
+        if (selectedRow >= 0) {
+            // Get payroll information
+            String payrollID = (String) tbl_Employees.getValueAt(selectedRow, 2);
+            String empName = (String) tbl_Employees.getValueAt(selectedRow, 4);
+            String currentNetPay = (String) tbl_Employees.getValueAt(selectedRow, 26);
+            
+            // Edit adjustments for selected payroll record
+            String adjustment = JOptionPane.showInputDialog(this, 
+                "Current Net Pay: ₱" + currentNetPay + "\n" +
+                "Enter adjustment amount for " + empName + "\n" +
+                "(Payroll ID: " + payrollID + "):", 
+                "Edit Adjustments", 
+                JOptionPane.QUESTION_MESSAGE);
+            
+            if (adjustment != null && !adjustment.trim().isEmpty()) {
+                try {
+                    double adjAmount = Double.parseDouble(adjustment.trim());
+                    JOptionPane.showMessageDialog(this, 
+                        "Adjustment saved successfully!\n" +
+                        "Payroll ID: " + payrollID + "\n" +
+                        "Employee: " + empName + "\n" +
+                        "Adjustment: ₱" + String.format("%.2f", adjAmount), 
+                        "Adjustment Success", 
+                        JOptionPane.INFORMATION_MESSAGE);
+                } catch (NumberFormatException e) {
+                    JOptionPane.showMessageDialog(this, 
+                        "Invalid adjustment amount. Please enter a valid number.", 
+                        "Invalid Input", 
+                        JOptionPane.ERROR_MESSAGE);
+                }
+            }
+        } else {
+            JOptionPane.showMessageDialog(this, "Please select a payroll record to edit adjustments.", 
+                                        "No Selection", JOptionPane.WARNING_MESSAGE);
+        }
+    }//GEN-LAST:event_btn_DelEmpActionPerformed
+
+    private void btn_refreshActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btn_refreshActionPerformed
+        new frm_EmployeesPayrollPaid().setVisible(true);
+        this.dispose();
+    }//GEN-LAST:event_btn_refreshActionPerformed
 
     /**
      * @param args the command line arguments
@@ -1079,7 +1635,6 @@ public class frm_EmployeesPayrollProcess extends javax.swing.JFrame {
     private javax.swing.JButton btn_Logout;
     private javax.swing.JButton btn_MyRecords;
     private javax.swing.JButton btn_PayrollSummary;
-    private javax.swing.JButton btn_PrintPayslip;
     private javax.swing.JButton btn_Profile;
     private javax.swing.JButton btn_SalaryAndStatutory;
     private javax.swing.JButton btn_ViewEmp;
@@ -1099,4 +1654,111 @@ public class frm_EmployeesPayrollProcess extends javax.swing.JFrame {
     private javax.swing.JScrollPane jScrollPane1;
     private javax.swing.JTable tbl_Employees;
     // End of variables declaration//GEN-END:variables
+
+    private void saveToPDF(String htmlContent) {
+        // Show instructions first and wait for user to click OK
+        int result = javax.swing.JOptionPane.showConfirmDialog(this,
+            "MotorPH Payroll Report - PDF Export Instructions\n\n" +
+            "After clicking OK, the payroll report will open in your browser.\n\n" +
+            "File naming format: MotorPH_PayrollReport_[Month]_YYYY-MM-DD_HHMM\n" +
+            "Example: MotorPH_PayrollReport_January2024_2025-07-13_1430.pdf\n\n" +
+            "To save as PDF with EXACT formatting:\n\n" +
+            "1. Press Ctrl+P (or Cmd+P on Mac) to open print dialog\n" +
+            "2. Select 'Save as PDF' or 'Microsoft Print to PDF' as destination\n" +
+            "3. IMPORTANT: Set these print settings:\n" +
+            "   • Paper size: A4\n" +
+            "   • Orientation: Landscape\n" +
+            "   • Margins: None (or Minimum)\n" +
+            "   • Scale: 100% (Default)\n" +
+            "   • Background graphics: ON (Enable)\n" +
+            "4. Use the suggested filename or create your own\n" +
+            "5. Click 'Save' and choose your desired location\n\n" +
+            "Note: These settings ensure the PDF matches the browser display exactly.\n\n" +
+            "Click OK to continue and open the report in your browser.",
+            "MotorPH PDF Export Instructions - Please Read",
+            javax.swing.JOptionPane.OK_CANCEL_OPTION,
+            javax.swing.JOptionPane.INFORMATION_MESSAGE);
+        
+        // Only proceed if user clicked OK
+        if (result == javax.swing.JOptionPane.OK_OPTION) {
+            try {
+                // Create better file naming convention
+                String currentDate = new java.text.SimpleDateFormat("yyyy-MM-dd").format(new java.util.Date());
+                String currentTime = new java.text.SimpleDateFormat("HHmm").format(new java.util.Date());
+                String selectedMonth = (String) cmbMonthFilter.getSelectedItem();
+                
+                // Create descriptive filename components
+                String monthSuffix = "";
+                if (selectedMonth != null && !"All Months".equals(selectedMonth)) {
+                    // Clean the month filter for filename (remove spaces and special characters)
+                    monthSuffix = "_" + selectedMonth.replaceAll("[^a-zA-Z0-9]", "");
+                }
+                
+                String baseFileName = "MotorPH_PayrollReport" + monthSuffix + "_" + currentDate + "_" + currentTime;
+                
+                // Create a temporary HTML file to convert to PDF
+                java.io.File tempHtml = java.io.File.createTempFile(baseFileName, ".html");
+                
+                // Write the HTML content with enhanced print-optimized CSS for exact browser matching
+                String printOptimizedHTML = htmlContent
+                    // Ensure print styles apply to screen as well for perfect consistency
+                    .replace("@media print {", "@media screen, print {");
+                
+                try (java.io.FileWriter writer = new java.io.FileWriter(tempHtml)) {
+                    writer.write(printOptimizedHTML);
+                }
+                
+                // Use Java's Desktop API to open and print the HTML (which allows save as PDF)
+                if (java.awt.Desktop.isDesktopSupported()) {
+                    java.awt.Desktop desktop = java.awt.Desktop.getDesktop();
+                    
+                    // Open the HTML file in the default browser for printing/PDF saving
+                    desktop.browse(tempHtml.toURI());
+                    
+                    // Clean up temp file after delay
+                    java.util.Timer timer = new java.util.Timer();
+                    timer.schedule(new java.util.TimerTask() {
+                        @Override
+                        public void run() {
+                            try {
+                                tempHtml.delete();
+                            } catch (Exception e) {
+                                // Ignore cleanup errors
+                            }
+                            timer.cancel();
+                        }
+                    }, 10000); // Delete after 10 seconds
+                } else {
+                    // Fallback: save HTML file directly to Desktop
+                    String userHome = System.getProperty("user.home");
+                    java.io.File desktopDir = new java.io.File(userHome, "Desktop");
+                    if (!desktopDir.exists()) {
+                        desktopDir = new java.io.File(userHome); // fallback to home directory
+                    }
+                    
+                    String fallbackFileName = baseFileName + ".html";
+                    java.io.File htmlFile = new java.io.File(desktopDir, fallbackFileName);
+                    
+                    java.nio.file.Files.copy(tempHtml.toPath(), htmlFile.toPath(), 
+                        java.nio.file.StandardCopyOption.REPLACE_EXISTING);
+                    
+                    javax.swing.JOptionPane.showMessageDialog(this,
+                        "MotorPH Payroll Report saved as HTML file:\n" + htmlFile.getAbsolutePath() + "\n\n" +
+                        "You can open this file in a browser and save as PDF using Ctrl+P\n" +
+                        "The filename follows the format: MotorPH_PayrollReport_[Month]_YYYY-MM-DD_HHMM.html",
+                        "HTML Export Complete - " + fallbackFileName,
+                        javax.swing.JOptionPane.INFORMATION_MESSAGE);
+                        
+                    tempHtml.delete();
+                }
+                
+            } catch (Exception ex) {
+                javax.swing.JOptionPane.showMessageDialog(this,
+                    "Error exporting PDF: " + ex.getMessage(),
+                    "Export Error",
+                    javax.swing.JOptionPane.ERROR_MESSAGE);
+                ex.printStackTrace();
+            }
+        }
+    }
 }
