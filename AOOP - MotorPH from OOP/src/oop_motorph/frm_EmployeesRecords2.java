@@ -61,13 +61,35 @@ public class frm_EmployeesRecords2 extends javax.swing.JFrame {
             cbox_empStatus.setSelectedItem(empDetails.getEmployeeStatus());
             cbox_position.setSelectedItem(empDetails.getPosition());
             // Find supervisor display name by EmployeeID
-            String supervisorId = empDetails.getImmediateSupervisor();
+            String supervisorIdOrName = empDetails.getImmediateSupervisor();
             String supervisorDisplay = "Select";
-            for (Map.Entry<String, String> entry : supervisorMap.entrySet()) {
-                if (supervisorId != null && supervisorId.equals(entry.getValue())) {
-                    supervisorDisplay = entry.getKey();
-                    break;
+            if (supervisorIdOrName != null && !supervisorIdOrName.isEmpty()) {
+                for (Map.Entry<String, String> entry : supervisorMap.entrySet()) {
+                    String key = entry.getKey();
+                    String value = entry.getValue();
+                    // Skip 'Select' and 'N/A' entries
+                    if (key.equals("Select") || key.equals("N/A")) continue;
+                    // Match by EmployeeID
+                    if (supervisorIdOrName.equals(String.valueOf(value))) {
+                        supervisorDisplay = key;
+                        break;
+                    }
+                    // Match by supervisor name (for legacy CSV)
+                    int idxParen = key.indexOf(" (");
+                    if (idxParen > 0) {
+                        String nameOnly = key.substring(0, idxParen);
+                        if (supervisorIdOrName.equals(nameOnly)) {
+                            supervisorDisplay = key;
+                            break;
+                        }
+                    }
                 }
+                // If not found, fallback to N/A
+                if (supervisorDisplay.equals("Select")) {
+                    supervisorDisplay = "N/A";
+                }
+            } else {
+                supervisorDisplay = "N/A";
             }
             cbox_immSupervisor.setSelectedItem(supervisorDisplay);
         } else {
