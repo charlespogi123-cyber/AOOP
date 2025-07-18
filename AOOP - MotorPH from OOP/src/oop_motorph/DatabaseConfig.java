@@ -5,20 +5,24 @@ import java.sql.DriverManager;
 import java.sql.SQLException;
 
 public class DatabaseConfig {
-    private static final String URL = "jdbc:mysql://localhost:3306/aoop";
-    private static final String USERNAME = "root"; // Change to your MySQL username
-    private static final String PASSWORD = "3513461u"; // Change to your MySQL password
 
     private static DatabaseConfig instance;
     private Connection connection;
 
     private DatabaseConfig() {
+        // Private constructor to prevent direct instantiation
         try {
-            Class.forName("com.mysql.cj.jdbc.Driver");
-            this.connection = DriverManager.getConnection(URL, USERNAME, PASSWORD);
-        } catch (ClassNotFoundException | SQLException e) {
+            String url = "jdbc:mysql://localhost:3306/aoop"; // Example for MySQL
+            String user = "root";
+            String password = "3513461u";
+            // Load the JDBC driver
+            Class.forName("com.mysql.cj.jdbc.Driver"); // For MySQL 8+
+            this.connection = DriverManager.getConnection(url, user, password);
+            System.out.println("Database connection established.");
+        } catch (SQLException | ClassNotFoundException e) {
             System.err.println("Database connection failed: " + e.getMessage());
             e.printStackTrace();
+            
         }
     }
 
@@ -30,23 +34,33 @@ public class DatabaseConfig {
     }
 
     public Connection getConnection() {
+        // Ensure connection is still valid or re-establish if needed (basic check)
         try {
             if (connection == null || connection.isClosed()) {
-                connection = DriverManager.getConnection(URL, USERNAME, PASSWORD);
+                System.out.println("Re-establishing database connection...");
+                // Replace with your actual database URL, username, and password
+                String url = "jdbc:mysql://localhost:3306/aoop";
+                String user = "root";
+                String password = "3513461u";
+                this.connection = DriverManager.getConnection(url, user, password);
+                System.out.println("Database connection re-established.");
             }
         } catch (SQLException e) {
-            System.err.println("Failed to get connection: " + e.getMessage());
+            System.err.println("Failed to re-establish database connection: " + e.getMessage());
+            e.printStackTrace();
         }
         return connection;
     }
 
     public void closeConnection() {
-        try {
-            if (connection != null && !connection.isClosed()) {
+        if (connection != null) {
+            try {
                 connection.close();
+                System.out.println("Database connection closed.");
+            } catch (SQLException e) {
+                System.err.println("Error closing database connection: " + e.getMessage());
+                e.printStackTrace();
             }
-        } catch (SQLException e) {
-            System.err.println("Failed to close connection: " + e.getMessage());
         }
     }
 }
